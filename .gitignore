@@ -1,0 +1,4 @@
+/Scripts/createContext.bat
+/Backend/ResumeCV/ResumeCV.WebAPI/appsettings.Development.json
+/Backend/ResumeCV/ResumeCV.WebAPI/appsettings.Docker.json
+/Backend/ResumeCV/ResumeCV.WebAPI/appsettings.Template.json
