@@ -23,6 +23,10 @@ public partial class Resume
 
     public string Title { get; set; } = null!;
 
+    public string JobDescription { get; set; } = null!;
+
+    public string? PhotoUrl { get; set; }
+
     public virtual ICollection<ResumeCourse> ResumeCourses { get; set; } = new List<ResumeCourse>();
 
     public virtual ICollection<ResumeInfo> ResumeInfos { get; set; } = new List<ResumeInfo>();

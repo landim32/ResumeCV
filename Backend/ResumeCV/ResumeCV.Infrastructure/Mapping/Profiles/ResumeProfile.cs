@@ -5,6 +5,7 @@ using ResumeCV.Infra.Context;
 using ResumeCV.DTOs;
 using System;
 using System.Linq;
+using ResumeCV.Domain.Enums;
 
 namespace ResumeCV.Infra.Mapping.Profiles
 {
@@ -23,8 +24,11 @@ namespace ResumeCV.Infra.Mapping.Profiles
                         src.Email,
                         src.Status,
                         src.Title,
+                        src.JobDescription ?? string.Empty,
+                        src.PhotoUrl ?? string.Empty,
                         src.Address,
-                        src.Resume1))
+                        src.Resume1
+                    ))
                 .AfterMap((src, dest, ctx) =>
                 {
                     dest.ClearCourses();
@@ -74,7 +78,14 @@ namespace ResumeCV.Infra.Mapping.Profiles
                 });
 
             CreateMap<ResumeInfo, IResumeInfoModel>()
-                .ConstructUsing(src => new ResumeInfoModel(src.InfoId, src.ResumeId, src.Title, src.Resume, src.Url))
+                .ConstructUsing(src => new ResumeInfoModel(
+                    src.InfoId, 
+                    src.ResumeId, 
+                    (InfoTypeEnum)src.InfoType, 
+                    src.Title, 
+                    src.Resume, 
+                    src.Url
+                ))
                 .AfterMap((src, dest, ctx) =>
                 {
                     dest.ClearSkills();
@@ -123,6 +134,8 @@ namespace ResumeCV.Infra.Mapping.Profiles
                 .ForMember(d => d.Address, o => o.MapFrom(s => s.Address))
                 .ForMember(d => d.Resume1, o => o.MapFrom(s => s.Resume))
                 .ForMember(d => d.Title, o => o.MapFrom(s => s.Title))
+                .ForMember(d => d.JobDescription, o => o.MapFrom(s => s.JobDescription))
+                .ForMember(d => d.PhotoUrl, o => o.MapFrom(s => s.PhotoUrl))
                 .ForMember(d => d.ResumeCourses, o => o.MapFrom(s => s.Courses))
                 .ForMember(d => d.ResumeInfos, o => o.MapFrom(s => s.Infos))
                 .ForMember(d => d.ResumeJobs, o => o.MapFrom(s => s.Jobs))
@@ -158,6 +171,7 @@ namespace ResumeCV.Infra.Mapping.Profiles
                 {
                     InfoId = src.InfoId,
                     ResumeId = src.ResumeId,
+                    InfoType = (int)src.InfoType,
                     Title = src.Title,
                     Resume = src.Resume,
                     Url = src.Url
@@ -239,6 +253,7 @@ namespace ResumeCV.Infra.Mapping.Profiles
             CreateMap<IResumeInfoModel, ResumeInfoDTO>()
                 .ForMember(d => d.InfoId, o => o.MapFrom(s => s.InfoId))
                 //.ForMember(d => d.ResumeId, o => o.MapFrom(s => s.ResumeId))
+                .ForMember(d => d.InfoType, o => o.MapFrom(s => (int)s.InfoType))
                 .ForMember(d => d.Title, o => o.MapFrom(s => s.Title))
                 .ForMember(d => d.Resume, o => o.MapFrom(s => s.Resume))
                 .ForMember(d => d.Url, o => o.MapFrom(s => s.Url))
@@ -266,6 +281,8 @@ namespace ResumeCV.Infra.Mapping.Profiles
                 .ForMember(d => d.ResumeId, o => o.MapFrom(s => s.ResumeId))
                 .ForMember(d => d.UserId, o => o.MapFrom(s => s.UserId))
                 .ForMember(d => d.Title, o => o.MapFrom(s => s.Title))
+                .ForMember(d => d.JobDescription, o => o.MapFrom(s => s.JobDescription))
+                .ForMember(d => d.PhotoUrl, o => o.MapFrom(s => s.PhotoUrl))
                 .ForMember(d => d.Name, o => o.MapFrom(s => s.Name))
                 .ForMember(d => d.Phone, o => o.MapFrom(s => s.Phone))
                 .ForMember(d => d.Email, o => o.MapFrom(s => s.Email))
@@ -302,7 +319,14 @@ namespace ResumeCV.Infra.Mapping.Profiles
 
             CreateMap<ResumeInfoDTO, IResumeInfoModel>()
                 //.ConstructUsing(src => new ResumeInfoModel(src.InfoId, src.ResumeId, src.Title, src.Resume, src.Url))
-                .ConstructUsing(src => new ResumeInfoModel(src.InfoId, 0, src.Title, src.Resume, src.Url))
+                .ConstructUsing(src => new ResumeInfoModel(
+                    src.InfoId, 
+                    0, 
+                    (InfoTypeEnum) src.InfoType,
+                    src.Title, 
+                    src.Resume, 
+                    src.Url
+                ))
                 .AfterMap((src, dest, ctx) =>
                 {
                     dest.ClearSkills();
@@ -345,6 +369,8 @@ namespace ResumeCV.Infra.Mapping.Profiles
                     src.Email,
                     src.Status,
                     src.Title,
+                    src.JobDescription,
+                    src.PhotoUrl,
                     src.Address,
                     src.Resume))
                 .AfterMap((src, dest, ctx) =>

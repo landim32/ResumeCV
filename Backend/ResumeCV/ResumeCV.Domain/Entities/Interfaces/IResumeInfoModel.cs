@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using ResumeCV.Domain.Enums;
+using System.Collections.Generic;
 
 namespace ResumeCV.Domain.Entities.Interfaces
 {
@@ -9,11 +10,13 @@ namespace ResumeCV.Domain.Entities.Interfaces
     {
         long InfoId { get; }
         long ResumeId { get; }
+        public InfoTypeEnum InfoType { get; set; }
         string Title { get; }
         string? Resume { get; }
         string? Url { get; }
         IList<IResumeSkillModel> Skills { get;  }
 
+        void UpdateInfoType(InfoTypeEnum infoType);
         void UpdateTitle(string title);
         void UpdateDescription(string? description);
         void UpdateUrl(string? url);

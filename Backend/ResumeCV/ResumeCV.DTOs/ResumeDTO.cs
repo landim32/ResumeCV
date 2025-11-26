@@ -26,6 +26,12 @@ namespace ResumeCV.DTOs
         [JsonProperty("status")]
         public int Status { get; set; }
 
+        [JsonProperty("jobDescription")]
+        public string JobDescription { get; set; } = string.Empty;
+
+        [JsonProperty("photoUrl")]
+        public string PhotoUrl { get; set; } = string.Empty;
+
         [JsonProperty("address", NullValueHandling = NullValueHandling.Ignore)]
         public string? Address { get; set; }
 

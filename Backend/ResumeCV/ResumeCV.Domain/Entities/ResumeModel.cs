@@ -17,10 +17,12 @@ namespace ResumeCV.Domain.Entities
         public long ResumeId { get; private set; }
         public long UserId { get; private set; }
         public string Title { get; private set; } = null!;
+        public string JobDescription { get; set; }
         public string Name { get; private set; } = null!;
         public string Phone { get; private set; } = null!;
         public string Email { get; private set; } = null!;
         public int Status { get; private set; }
+        public string? PhotoUrl { get; set; }
         public string? Address { get; private set; }
         public string? Resume { get; private set; }
 
@@ -65,6 +67,8 @@ namespace ResumeCV.Domain.Entities
             string email,
             int status,
             string title,
+            string jobDescription,
+            string? photoUrl = null,
             string? address = null,
             string? resume = null)
         {
@@ -79,6 +83,9 @@ namespace ResumeCV.Domain.Entities
             if (!email.Contains("@")) throw new ArgumentException("Email inválido.", nameof(email));
             if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Title é obrigatório.", nameof(title));
             if (title.Length > 500) throw new ArgumentException("Title excede o tamanho máximo (500).", nameof(title));
+            if (string.IsNullOrWhiteSpace(jobDescription)) throw new ArgumentException("Job description is empty.", nameof(jobDescription));
+            if (jobDescription.Length > 300) throw new ArgumentException("Job description max size is 300.", nameof(jobDescription));
+            if (photoUrl?.Length > 520) throw new ArgumentException("Photo url max size is 520.", nameof(photoUrl));
             if (address is not null && address.Length > 1000) throw new ArgumentException("Address excede o tamanho máximo (1000).", nameof(address));
             if (resume is not null && resume.Length > 4000) throw new ArgumentException("Resume (descrição) excede o tamanho máximo (4000).", nameof(resume));
 
@@ -89,6 +96,8 @@ namespace ResumeCV.Domain.Entities
             Email = email.Trim();
             Status = status;
             Title = title.Trim();
+            JobDescription = jobDescription.Trim();
+            PhotoUrl = photoUrl?.Trim();
             Address = string.IsNullOrWhiteSpace(address) ? null : address.Trim();
             Resume = resume;
         }
@@ -128,6 +137,19 @@ namespace ResumeCV.Domain.Entities
             if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Title é obrigatório.", nameof(title));
             if (title.Length > 500) throw new ArgumentException("Title excede o tamanho máximo (500).", nameof(title));
             Title = title.Trim();
+        }
+
+        public void UpdateJobDescription(string jobDescription)
+        {
+            if (string.IsNullOrWhiteSpace(jobDescription)) throw new ArgumentException("Job description is empty.", nameof(jobDescription));
+            if (jobDescription.Length > 300) throw new ArgumentException("Job description max size is 300.", nameof(jobDescription));
+            JobDescription = jobDescription.Trim();
+        }
+
+        public void UpdatePhotoUrl(string? photoUrl)
+        {
+            if (photoUrl?.Length > 520) throw new ArgumentException("Photo url max size is 520.", nameof(photoUrl));
+            PhotoUrl = photoUrl?.Trim();
         }
 
         public void UpdateAddress(string? address)

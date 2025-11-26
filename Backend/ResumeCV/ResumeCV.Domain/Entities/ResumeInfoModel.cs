@@ -1,4 +1,5 @@
 ﻿using ResumeCV.Domain.Entities.Interfaces;
+using ResumeCV.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,6 +12,7 @@ namespace ResumeCV.Domain.Entities
 
         public long InfoId { get; private set; }
         public long ResumeId { get; private set; }
+        public InfoTypeEnum InfoType { get; set; }
         public string Title { get; private set; } = null!;
         public string? Resume { get; private set; }
         public string? Url { get; private set; }
@@ -21,7 +23,7 @@ namespace ResumeCV.Domain.Entities
             }
         }
 
-        public ResumeInfoModel(long infoId, long resumeId, string title, string? description = null, string? url = null)
+        public ResumeInfoModel(long infoId, long resumeId, InfoTypeEnum infoType, string title, string? description = null, string? url = null)
         {
             //if (infoId <= 0) throw new ArgumentException("InfoId deve ser maior que zero.", nameof(infoId));
             //if (resumeId <= 0) throw new ArgumentException("ResumeId deve ser maior que zero.", nameof(resumeId));
@@ -32,9 +34,15 @@ namespace ResumeCV.Domain.Entities
 
             InfoId = infoId;
             ResumeId = resumeId;
+            InfoType = infoType;
             Title = title.Trim();
             Resume = description;
             Url = string.IsNullOrWhiteSpace(url) ? null : url.Trim();
+        }
+
+        public void UpdateInfoType(InfoTypeEnum infoType)
+        {
+            InfoType = infoType;
         }
 
         // Operações de domínio

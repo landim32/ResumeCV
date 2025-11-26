@@ -1,4 +1,6 @@
+using Castle.Core.Configuration;
 using Microsoft.Extensions.Configuration;
+using NTools.DTO.Settings;
 using ResumeCV.Application;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+
+builder.Services.Configure<NToolSetting>(builder.Configuration.GetSection("NTools"));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -7,6 +7,8 @@ using ResumeCV.Infra.Interfaces.UnitOfWork;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ResumeCV.Domain.Templates;
+using ResumeCV.Domain.Templates.Factories.Interfaces;
 
 namespace ResumeCV.Domain.Services
 {
@@ -15,12 +17,19 @@ namespace ResumeCV.Domain.Services
         private readonly IResumeRepository<IResumeModel> _resumeRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IPdfTemplateFactory _templateFactory;
 
-        public ResumeService(IResumeRepository<IResumeModel> resumeRepository, IMapper mapper, IUnitOfWork unitOfWork)
+        public ResumeService(
+            IResumeRepository<IResumeModel> resumeRepository, 
+            IMapper mapper, 
+            IUnitOfWork unitOfWork,
+            IPdfTemplateFactory templateFactory
+        )
         {
             _resumeRepository = resumeRepository ?? throw new ArgumentNullException(nameof(resumeRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _templateFactory = templateFactory ?? throw new ArgumentNullException(nameof(templateFactory));
         }
 
         public long Add(ResumeDTO resume)
@@ -102,6 +111,18 @@ namespace ResumeCV.Domain.Services
                 tx.Rollback();
                 throw;
             }
+        }
+
+        public Stream GeneratePdf(long resumeId)
+        {
+            if (resumeId <= 0) throw new ArgumentException("resumeId deve ser maior que zero.", nameof(resumeId));
+
+            var model = _resumeRepository.GetById(resumeId);
+            if (model == null) throw new Exception("Resume not found.");
+
+            // Lógica para gerar o PDF a partir do modelo
+            var pdfModel = _templateFactory.Create();
+            return pdfModel.GeneratePdf(model);
         }
     }
 }

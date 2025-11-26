@@ -15,9 +15,11 @@ namespace ResumeCV.Domain.Entities.Interfaces
         string Phone { get; }
         string Email { get; }
         int Status { get; }
+        string Title { get; }
+        string JobDescription { get; set; }
         string? Address { get; }
         string? Resume { get; }
-        string Title { get; }
+        string? PhotoUrl { get; set; }
 
         IList<IResumeCourseModel> Courses { get; }
         IList<IResumeInfoModel> Infos { get; }
@@ -31,6 +33,8 @@ namespace ResumeCV.Domain.Entities.Interfaces
         void UpdateTitle(string title);
         void UpdateAddress(string? address);
         void UpdateResume(string? resume);
+        void UpdateJobDescription(string jobDescription);
+        void UpdatePhotoUrl(string? photoUrl);
 
         void ClearCourses();
         void AddCourse(IResumeCourseModel course);

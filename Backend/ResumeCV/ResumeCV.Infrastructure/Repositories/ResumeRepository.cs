@@ -72,12 +72,23 @@ namespace ResumeCV.Infra.Repositories
             var existing = _context.Resumes.FirstOrDefault(r => r.ResumeId == resume.ResumeId);
             if (existing == null) throw new KeyNotFoundException($"Resume with id {resume.ResumeId} not found.");
 
+            _context.ResumeCourseSkills.RemoveRange(_context.ResumeCourseSkills.Where(x => x.Course.ResumeId == existing.ResumeId));
+            _context.ResumeCourses.RemoveRange(_context.ResumeCourses.Where(x => x.ResumeId == existing.ResumeId));
+            _context.ResumeInfoSkills.RemoveRange(_context.ResumeInfoSkills.Where(x => x.Info.ResumeId == existing.ResumeId));
+            _context.ResumeInfos.RemoveRange(_context.ResumeInfos.Where(x => x.ResumeId == existing.ResumeId));
+            _context.ResumeJobSkills.RemoveRange(_context.ResumeJobSkills.Where(x => x.Job.ResumeId == existing.ResumeId));
+            _context.ResumeJobs.RemoveRange(_context.ResumeJobs.Where(x => x.ResumeId == existing.ResumeId));
+            _context.ResumeLanguages.RemoveRange(_context.ResumeLanguages.Where(x => x.ResumeId == existing.ResumeId));
+            _context.SaveChanges();
+
             _mapper.Map(resume, existing);
 
             foreach (var course in existing.ResumeCourses) {
+                course.CourseId = 0;
                 course.ResumeId = existing.ResumeId;
                 foreach (var skill in course.ResumeCourseSkills)
                 {
+                    skill.CourseSkillId = 0;
                     var existingSkill = _context
                         .ResumeSkills
                         .Where(x => x.UserId == existing.UserId && x.Slug == skill.Skill.Slug)
@@ -90,9 +101,11 @@ namespace ResumeCV.Infra.Repositories
 
             foreach (var info in existing.ResumeInfos)
             {
+                info.InfoId = 0;
                 info.ResumeId = existing.ResumeId;
                 foreach (var skill in info.ResumeInfoSkills)
                 {
+                    skill.InfoSkillId = 0;
                     var existingSkill = _context
                         .ResumeSkills
                         .Where(x => x.UserId == existing.UserId && x.Slug == skill.Skill.Slug)
@@ -106,9 +119,11 @@ namespace ResumeCV.Infra.Repositories
 
             foreach (var job in existing.ResumeJobs)
             {
+                job.JobId = 0;
                 job.ResumeId = existing.ResumeId;
                 foreach (var skill in job.ResumeJobSkills)
                 {
+                    skill.JobSkillId = 0;
                     var existingSkill = _context
                         .ResumeSkills
                         .Where(x => x.UserId == existing.UserId && x.Slug == skill.Skill.Slug)
@@ -122,6 +137,7 @@ namespace ResumeCV.Infra.Repositories
 
             foreach (var language in existing.ResumeLanguages)
             {
+                language.LanguageId = 0;
                 language.ResumeId = existing.ResumeId;
             }
 

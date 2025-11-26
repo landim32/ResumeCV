@@ -8,10 +8,9 @@ namespace ResumeCV.DTOs
     {
         [JsonProperty("infoId")]
         public long InfoId { get; set; }
-        /*
-        [JsonProperty("resumeId")]
-        public long ResumeId { get; set; }
-        */
+
+        [JsonProperty("infoType")]
+        public int InfoType { get; set; }
 
         [JsonProperty("title")]
         public string Title { get; set; } = string.Empty;

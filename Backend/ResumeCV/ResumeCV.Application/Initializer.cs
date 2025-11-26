@@ -1,18 +1,24 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using ResumeCV.Infra.Context;
-using ResumeCV.Infra.Repositories;
-using ResumeCV.Domain.Entities;
-using ResumeCV.Infra.Mapping.Profiles;
-using AutoMapper;
-using System.Reflection.Metadata;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using ResumeCV.Infra.Interfaces.Repositories;
-using ResumeCV.Domain.Entities.Interfaces;
-using ResumeCV.Domain.Services.Interfaces;
-using ResumeCV.Domain.Services;
-using ResumeCV.Infra.Interfaces.UnitOfWork;
-using ResumeCV.Infra.UnitOfWork;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NTools.ACL;
+using NTools.ACL.Interfaces;
+using ResumeCV.Domain.Entities;
+using ResumeCV.Domain.Entities.Interfaces;
+using ResumeCV.Domain.Services;
+using ResumeCV.Domain.Services.Interfaces;
+using ResumeCV.Domain.Templates.Factories;
+using ResumeCV.Domain.Templates.Factories.Interfaces;
+using ResumeCV.Infra.Context;
+using ResumeCV.Infra.Interfaces.Pdf;
+using ResumeCV.Infra.Interfaces.Repositories;
+using ResumeCV.Infra.Interfaces.UnitOfWork;
+using ResumeCV.Infra.Mapping.Profiles;
+using ResumeCV.Infra.Pdf;
+using ResumeCV.Infra.Repositories;
+using ResumeCV.Infra.UnitOfWork;
+using System.Reflection.Metadata;
 
 namespace ResumeCV.Application
 {
@@ -62,7 +68,9 @@ namespace ResumeCV.Application
             injectDependency(typeof(IResumeService), typeof(ResumeService), services, scoped);
             #endregion
 
-            //injectDependency(typeof(IUserClient), typeof(UserClient), services, scoped);
+            injectDependency(typeof(IFileClient), typeof(FileClient), services, scoped);
+            injectDependency(typeof(IMarkdownRenderer), typeof(MarkdownRenderer), services, scoped);
+            injectDependency(typeof(IPdfTemplateFactory), typeof(PdfTemplateFactory), services, scoped);
 
 
             //services.AddAuthentication("BasicAuthentication")

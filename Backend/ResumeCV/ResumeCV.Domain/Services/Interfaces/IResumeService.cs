@@ -15,5 +15,6 @@ namespace ResumeCV.Domain.Services.Interfaces
         long Add(ResumeDTO resume);
         void Update(ResumeDTO resume);
         void Delete(long resumeId);
+        Stream GeneratePdf(long resumeId);
     }
 }

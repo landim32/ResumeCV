@@ -48,12 +48,18 @@ public partial class ResumeCVContext : DbContext
             entity.Property(e => e.Email)
                 .HasMaxLength(180)
                 .HasColumnName("email");
+            entity.Property(e => e.JobDescription)
+                .HasMaxLength(300)
+                .HasColumnName("job_description");
             entity.Property(e => e.Name)
                 .HasMaxLength(200)
                 .HasColumnName("name");
             entity.Property(e => e.Phone)
                 .HasMaxLength(30)
                 .HasColumnName("phone");
+            entity.Property(e => e.PhotoUrl)
+                .HasMaxLength(520)
+                .HasColumnName("photo_url");
             entity.Property(e => e.Resume1)
                 .HasMaxLength(3000)
                 .HasColumnName("resume");
@@ -128,6 +134,9 @@ public partial class ResumeCVContext : DbContext
             entity.ToTable("resume_infos");
 
             entity.Property(e => e.InfoId).HasColumnName("info_id");
+            entity.Property(e => e.InfoType)
+                .HasDefaultValue(1)
+                .HasColumnName("info_type");
             entity.Property(e => e.Resume)
                 .HasMaxLength(3000)
                 .HasColumnName("resume");
