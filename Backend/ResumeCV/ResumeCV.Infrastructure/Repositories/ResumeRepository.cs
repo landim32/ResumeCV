@@ -30,28 +30,16 @@ namespace ResumeCV.Infra.Repositories
             foreach (var course in entity.ResumeCourses)
             {
                 course.ResumeId = entity.ResumeId;
-                foreach (var skill in course.ResumeCourseSkills)
-                {
-                    skill.Skill.UserId = entity.UserId;
-                }
             }
 
             foreach (var info in entity.ResumeInfos)
             {
                 info.ResumeId = entity.ResumeId;
-                foreach (var skill in info.ResumeInfoSkills)
-                {
-                    skill.Skill.UserId = entity.UserId;
-                }
             }
 
             foreach (var job in entity.ResumeJobs)
             {
                 job.ResumeId = entity.ResumeId;
-                foreach (var skill in job.ResumeJobSkills)
-                {
-                    skill.Skill.UserId = entity.UserId;
-                }
             }
 
             foreach (var language in entity.ResumeLanguages)
@@ -91,9 +79,10 @@ namespace ResumeCV.Infra.Repositories
                     skill.CourseSkillId = 0;
                     var existingSkill = _context
                         .ResumeSkills
-                        .Where(x => x.UserId == existing.UserId && x.Slug == skill.Skill.Slug)
+                        .Where(x => x.Slug == skill.Skill.Slug)
                         .FirstOrDefault();
                     if (existingSkill != null) {
+                        existingSkill.SkillType = skill.Skill.SkillType;
                         skill.SkillId = existingSkill.SkillId;
                     }
                 }
@@ -108,10 +97,11 @@ namespace ResumeCV.Infra.Repositories
                     skill.InfoSkillId = 0;
                     var existingSkill = _context
                         .ResumeSkills
-                        .Where(x => x.UserId == existing.UserId && x.Slug == skill.Skill.Slug)
+                        .Where(x => x.Slug == skill.Skill.Slug)
                         .FirstOrDefault();
                     if (existingSkill != null)
                     {
+                        existingSkill.SkillType = skill.Skill.SkillType;
                         skill.SkillId = existingSkill.SkillId;
                     }
                 }
@@ -126,10 +116,11 @@ namespace ResumeCV.Infra.Repositories
                     skill.JobSkillId = 0;
                     var existingSkill = _context
                         .ResumeSkills
-                        .Where(x => x.UserId == existing.UserId && x.Slug == skill.Skill.Slug)
+                        .Where(x => x.Slug == skill.Skill.Slug)
                         .FirstOrDefault();
                     if (existingSkill != null)
                     {
+                        existingSkill.SkillType = skill.Skill.SkillType;
                         skill.SkillId = existingSkill.SkillId;
                     }
                 }

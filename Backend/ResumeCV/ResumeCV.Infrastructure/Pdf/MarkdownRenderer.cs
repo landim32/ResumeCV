@@ -14,13 +14,15 @@ namespace ResumeCV.Infra.Pdf
     public class MarkdownRenderer: IMarkdownRenderer
     {
         private int _baseFontSize;
+        private bool _justify;
 
-        public void Render(IContainer container, string markdown, int fontSize)
+        public void Render(IContainer container, string markdown, int fontSize, bool justify = false)
         {
             if (string.IsNullOrWhiteSpace(markdown))
                 return;
 
             _baseFontSize = fontSize;
+            _justify = justify;
 
             var pipeline = new MarkdownPipelineBuilder()
                 .UseAdvancedExtensions()
@@ -75,7 +77,12 @@ namespace ResumeCV.Infra.Pdf
 
                 default:
                     // Fallback para tipos não implementados
-                    column.Item().PaddingBottom(5).Text(block.ToString() ?? string.Empty).FontSize(_baseFontSize);
+                    var textBlock = column.Item()
+                        .PaddingBottom(5)
+                        .Text(block.ToString() ?? string.Empty)
+                        .FontSize(_baseFontSize).
+                        Justify();
+                    if (_justify) textBlock.Justify();
                     break;
             }
         }
@@ -84,11 +91,11 @@ namespace ResumeCV.Infra.Pdf
         {
             var fontSize = heading.Level switch
             {
-                1 => _baseFontSize * 1.8f,  // 18/10 = 1.8
-                2 => _baseFontSize * 1.6f,  // 16/10 = 1.6
-                3 => _baseFontSize * 1.4f,  // 14/10 = 1.4
-                4 => _baseFontSize * 1.2f,  // 12/10 = 1.2
-                5 => _baseFontSize * 1.1f,  // 11/10 = 1.1
+                1 => _baseFontSize * 1.8f,
+                2 => _baseFontSize * 1.6f,
+                3 => _baseFontSize * 1.4f,
+                4 => _baseFontSize * 1.2f,
+                5 => _baseFontSize * 1.1f,
                 _ => _baseFontSize * 1.0f
             };
 
@@ -99,28 +106,30 @@ namespace ResumeCV.Infra.Pdf
                 .Text(text =>
                 {
                     RenderInlines(text, heading.Inline);
+                    if (_justify) text.Justify();
                 });
         }
 
         private void RenderParagraph(ColumnDescriptor column, ParagraphBlock paragraph)
         {
             column.Item()
-                .PaddingBottom(8)
-                .DefaultTextStyle(x => x.FontSize(_baseFontSize).LineHeight(1.4f))
+                .PaddingBottom(2)
+                .DefaultTextStyle(x => x.FontSize(_baseFontSize))
                 .Text(text =>
                 {
                     RenderInlines(text, paragraph.Inline);
+                    if (_justify) text.Justify();
                 });
         }
 
         private void RenderList(ColumnDescriptor column, ListBlock list)
         {
-            column.Item().PaddingBottom(8).Column(listCol =>
+            column.Item().PaddingBottom(2).Column(listCol =>
             {
                 var index = 1;
                 foreach (ListItemBlock item in list)
                 {
-                    listCol.Item().PaddingLeft(5).PaddingBottom(3).Row(row =>
+                    listCol.Item().PaddingLeft(5).PaddingBottom(2).Row(row =>
                     {
                         // Bullet ou número
                         var bullet = list.IsOrdered ? $"{index}." : "•";
@@ -134,11 +143,11 @@ namespace ResumeCV.Infra.Pdf
                                 if (block is ParagraphBlock para)
                                 {
                                     itemCol.Item()
-                                        .DefaultTextStyle(x => x.FontSize(_baseFontSize).LineHeight(1.4f))
-                                        .DefaultTextStyle(x => x.LineHeight(1.4f))
+                                        .DefaultTextStyle(x => x.FontSize(_baseFontSize))
                                         .Text(text =>
                                         {
                                             RenderInlines(text, para.Inline);
+                                            if (_justify) text.Justify();
                                         });
                                 }
                                 else
@@ -163,7 +172,7 @@ namespace ResumeCV.Infra.Pdf
                 .Padding(10)
                 .Text(codeText)
                 .FontFamily("Courier New")
-                .FontSize(_baseFontSize * 0.9f) // 9/10 = 0.9
+                .FontSize(_baseFontSize * 0.9f)
                 .FontColor(Colors.Grey.Darken4);
         }
 
@@ -219,7 +228,7 @@ namespace ResumeCV.Infra.Pdf
                             .BorderColor(Colors.Grey.Medium)
                             .Padding(5)
                             .Background(isHeader ? Colors.Grey.Lighten3 : Colors.White)
-                            .DefaultTextStyle(x => x.FontSize(_baseFontSize * 0.9f)) // 9/10 = 0.9
+                            .DefaultTextStyle(x => x.FontSize(_baseFontSize * 0.9f))
                             .Column(cellCol =>
                             {
                                 foreach (var block in cell)
@@ -229,11 +238,13 @@ namespace ResumeCV.Infra.Pdf
                                         var style = isHeader 
                                             ? cellCol.Item().DefaultTextStyle(x => x.Bold())
                                             : cellCol.Item();
-                                            
+                                        
                                         style.Text(text =>
                                         {
                                             RenderInlines(text, para.Inline);
+                                            if (_justify) text.Justify();
                                         });
+                                        
                                     }
                                     else
                                     {
@@ -265,7 +276,7 @@ namespace ResumeCV.Infra.Pdf
                     case CodeInline code:
                         text.Span(code.Content)
                             .FontFamily("Courier New")
-                            .FontSize(_baseFontSize * 0.9f) // 9/10 = 0.9
+                            .FontSize(_baseFontSize * 0.9f)
                             .BackgroundColor(Colors.Grey.Lighten3)
                             .FontColor(Colors.Grey.Darken4);
                         break;
@@ -330,7 +341,7 @@ namespace ResumeCV.Infra.Pdf
             // Adiciona URL entre parênteses se for diferente do texto
             if (!string.IsNullOrWhiteSpace(link.Url) && link.Url != linkText)
             {
-                text.Span($" ({link.Url})").FontSize(_baseFontSize * 0.8f).FontColor(Colors.Grey.Medium); // 8/10 = 0.8
+                text.Span($" ({link.Url})").FontSize(_baseFontSize * 0.8f).FontColor(Colors.Grey.Medium);
             }
         }
 

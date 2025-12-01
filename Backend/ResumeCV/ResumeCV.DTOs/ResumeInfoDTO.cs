@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using ResumeCV.DTOs.Enums;
 using System;
 using System.Collections.Generic;
 
@@ -10,7 +12,8 @@ namespace ResumeCV.DTOs
         public long InfoId { get; set; }
 
         [JsonProperty("infoType")]
-        public int InfoType { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
+        public InfoTypeEnum InfoType { get; set; }
 
         [JsonProperty("title")]
         public string Title { get; set; } = string.Empty;

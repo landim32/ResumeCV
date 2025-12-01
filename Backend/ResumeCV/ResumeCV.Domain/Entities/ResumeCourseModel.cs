@@ -1,4 +1,5 @@
 ﻿using ResumeCV.Domain.Entities.Interfaces;
+using ResumeCV.DTOs.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,16 +12,17 @@ namespace ResumeCV.Domain.Entities
 
         public long CourseId { get; private set; }
         public long ResumeId { get; private set; }
-        public int? CourseType { get; private set; }
+        public CourseTypeEnum CourseType { get; private set; }
         public string Title { get; private set; } = null!;
         public string? Location { get; private set; }
         public string? Institute { get; private set; }
         public string? Resume { get; private set; }
         public DateTime? StartDate { get; private set; }
         public DateTime? EndDate { get; private set; }
+        public int Workload { get; private set; }
         public IList<IResumeSkillModel> Skills { get => _skills; }
 
-        public ResumeCourseModel(long courseId, long resumeId, string title, int? courseType = null)
+        public ResumeCourseModel(long courseId, long resumeId, string title, CourseTypeEnum courseType, int workload)
         {
             //if (courseId <= 0) throw new ArgumentException("CourseId deve ser maior que zero.", nameof(courseId));
             //if (resumeId <= 0) throw new ArgumentException("ResumeId deve ser maior que zero.", nameof(resumeId));
@@ -31,6 +33,7 @@ namespace ResumeCV.Domain.Entities
             ResumeId = resumeId;
             Title = title.Trim();
             CourseType = courseType;
+            Workload = workload;
         }
 
         // Operações de domínio
@@ -59,7 +62,7 @@ namespace ResumeCV.Domain.Entities
             Resume = description;
         }
 
-        public void SetCourseType(int? courseType)
+        public void SetCourseType(CourseTypeEnum courseType)
         {
             CourseType = courseType;
         }
@@ -84,6 +87,11 @@ namespace ResumeCV.Domain.Entities
                 throw new ArgumentException("StartDate não pode ser posterior à EndDate.");
             StartDate = start;
             EndDate = end;
+        }
+
+        public void SetWorkload(int workload)
+        {
+            Workload = workload;
         }
 
         public void ClearSkills()

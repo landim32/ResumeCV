@@ -1,4 +1,4 @@
-﻿using ResumeCV.Domain.Enums;
+﻿using ResumeCV.DTOs.Enums;
 using System.Collections.Generic;
 
 namespace ResumeCV.Domain.Entities.Interfaces

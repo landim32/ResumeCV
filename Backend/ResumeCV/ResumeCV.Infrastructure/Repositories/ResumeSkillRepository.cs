@@ -55,13 +55,12 @@ namespace ResumeCV.Infra.Repositories
             return model;
         }
 
-        public IEnumerable<IResumeSkillModel> ListByUserId(long userId)
+        public IEnumerable<IResumeSkillModel> List()
         {
-            var entities = _context.ResumeSkills
-                                   .Where(s => s.UserId == userId)
-                                   .ToList();
-
-            return entities.Select(e => _mapper.Map<IResumeSkillModel>(e)).ToList();
+            return _context
+                .ResumeSkills
+                .Select(e => _mapper.Map<IResumeSkillModel>(e))
+                .ToList();
         }
 
         public IResumeSkillModel Update(IResumeSkillModel resume)

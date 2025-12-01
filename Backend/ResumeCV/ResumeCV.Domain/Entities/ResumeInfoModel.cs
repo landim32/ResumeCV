@@ -1,5 +1,5 @@
 ﻿using ResumeCV.Domain.Entities.Interfaces;
-using ResumeCV.Domain.Enums;
+using ResumeCV.DTOs.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;

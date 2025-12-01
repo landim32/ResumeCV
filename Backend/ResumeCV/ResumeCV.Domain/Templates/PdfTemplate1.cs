@@ -3,6 +3,7 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using ResumeCV.Domain.Entities.Interfaces;
 using ResumeCV.Domain.Templates.Interfaces;
+using ResumeCV.DTOs.Enums;
 using ResumeCV.Infra.Interfaces.Pdf;
 using SkiaSharp;
 using System;
@@ -15,8 +16,8 @@ namespace ResumeCV.Domain.Templates
 {
     public class PdfTemplate1 : IPdfBaseTemplate
     {
-        private const int MAIN_COLUMN_RATIO = 5;
-        private const int RIGHT_COLUMN_RATIO = 2;
+        private const int MAIN_COLUMN_RATIO = 7;
+        private const int RIGHT_COLUMN_RATIO = 4;
         private readonly IMarkdownRenderer _markdownRenderer;
 
         public PdfTemplate1(IMarkdownRenderer markdownRenderer)
@@ -36,11 +37,22 @@ namespace ResumeCV.Domain.Templates
                                .Concat(resume.Infos.SelectMany(i => i.Skills ?? Enumerable.Empty<IResumeSkillModel>()))
                                .Concat(resume.Jobs.SelectMany(j => j.Skills ?? Enumerable.Empty<IResumeSkillModel>()))
                                .Where(s => !string.IsNullOrWhiteSpace(s?.Name))
+                               .OrderBy(s => s.SkillType)
                                .Select(s => s!.Name)
                                .Distinct(StringComparer.InvariantCultureIgnoreCase)
                                .ToList();
 
             var languages = resume.Languages ?? Enumerable.Empty<IResumeLanguageModel>();
+
+            // Filtra links (InfoType = 1)
+            var links = resume.Infos?
+                .Where(i => i.InfoType == InfoTypeEnum.Links && !string.IsNullOrWhiteSpace(i.Url))
+                .ToList() ?? new List<IResumeInfoModel>();
+
+            // Filtra outras infos (não links)
+            var otherInfos = resume.Infos?
+                .Where(i => i.InfoType != InfoTypeEnum.Links)
+                .ToList() ?? new List<IResumeInfoModel>();
 
             QuestPDF.Settings.License = LicenseType.Community;
 
@@ -73,8 +85,17 @@ namespace ResumeCV.Domain.Templates
                                 }.Where(x => !string.IsNullOrWhiteSpace(x)));
                                 if (!string.IsNullOrWhiteSpace(contacts))
                                 {
-                                    main.Item().PaddingBottom(10).Text(contacts).FontSize(9).FontColor(Colors.Grey.Medium);
+                                    main.Item().Text(contacts).FontSize(9).FontColor(Colors.Grey.Medium);
                                 }
+
+                                // Links (InfoType = 1)
+                                if (links.Any())
+                                {
+                                    var linksText = string.Join(" • ", links.Select(link => 
+                                        $"🔗 {link.Url}"));
+                                    main.Item().PaddingBottom(10).Text(linksText).FontSize(9).FontColor(Colors.Blue.Darken1);
+                                }
+
                                 // Experiências / Jobs
                                 if (resume.Jobs != null && resume.Jobs.Any())
                                 {
@@ -89,7 +110,7 @@ namespace ResumeCV.Domain.Templates
                                             jobCol.Item().Row(r =>
                                             {
                                                 r.RelativeItem().Text($"{job.Position} — {job.Business1}").Bold();
-                                                r.ConstantItem(120).AlignRight().Text(period).FontSize(9).FontColor(Colors.Grey.Medium);
+                                                r.ConstantItem(120).PaddingTop(2).AlignRight().Text(period).FontSize(8).FontColor(Colors.Grey.Medium);
                                             });
 
                                             if (!string.IsNullOrWhiteSpace(job.Business2))
@@ -100,62 +121,26 @@ namespace ResumeCV.Domain.Templates
 
                                             if (!string.IsNullOrWhiteSpace(job.Resume))
                                             {
-                                                jobCol.Item().PaddingTop(4).Element(container =>
-                                                    _markdownRenderer.Render(container, job.Resume, 9));
+                                                jobCol.Item().PaddingTop(2).Element(container =>
+                                                    _markdownRenderer.Render(container, job.Resume, 9, true));
                                             }
 
                                             if (job.Skills != null && job.Skills.Any())
                                             {
                                                 var jobSkills = string.Join(", ", job.Skills.Where(s => !string.IsNullOrWhiteSpace(s?.Name)).Select(s => s!.Name));
                                                 if (!string.IsNullOrWhiteSpace(jobSkills))
-                                                    jobCol.Item().PaddingTop(4).Text($"Skills: {jobSkills}").FontSize(9).FontColor(Colors.Grey.Medium);
+                                                    //jobCol.Item().PaddingTop(4).Text($"Competências: {jobSkills}").FontSize(8).FontColor(Colors.Grey.Medium);
+                                                    jobCol.Item().Text($"Competências: {jobSkills}").FontSize(8).FontColor(Colors.Grey.Medium).Justify();
                                             }
                                         });
                                     }
                                 }
 
-                                // Cursos / Formação
-                                if (resume.Courses != null && resume.Courses.Any())
-                                {
-                                    main.Item().PaddingTop(15).PaddingBottom(4).Text("Formação / Cursos").FontSize(14).Bold();
-                                    foreach (var course in resume.Courses)
-                                    {
-                                        main.Item().PaddingBottom(10).Column(courseCol =>
-                                        {
-                                            var period = FormatRange(course.StartDate, course.EndDate);
-                                            courseCol.Item().Row(r =>
-                                            {
-                                                r.RelativeItem().Text(course.Title).Bold();
-                                                r.ConstantItem(120).AlignRight().Text(period).FontSize(9).FontColor(Colors.Grey.Medium);
-                                            });
-
-                                            if (!string.IsNullOrWhiteSpace(course.Institute))
-                                                courseCol.Item().Text(course.Institute).FontSize(10).FontColor(Colors.Grey.Darken3);
-
-                                            if (!string.IsNullOrWhiteSpace(course.Location))
-                                                courseCol.Item().Text($"Local: {course.Location}").FontSize(9).FontColor(Colors.Grey.Medium);
-
-                                            if (!string.IsNullOrWhiteSpace(course.Resume))
-                                            {
-                                                courseCol.Item().PaddingTop(4).Element(container =>
-                                                    _markdownRenderer.Render(container, course.Resume, 9));
-                                            }
-
-                                            if (course.Skills != null && course.Skills.Any())
-                                            {
-                                                var cskills = string.Join(", ", course.Skills.Where(s => !string.IsNullOrWhiteSpace(s?.Name)).Select(s => s!.Name));
-                                                if (!string.IsNullOrWhiteSpace(cskills))
-                                                    courseCol.Item().PaddingTop(4).Text($"Skills: {cskills}").FontSize(9).FontColor(Colors.Grey.Medium);
-                                            }
-                                        });
-                                    }
-                                }
-
-                                // Infos (links / projetos / extras)
-                                if (resume.Infos != null && resume.Infos.Any())
+                                // Infos (projetos / extras - excluindo links)
+                                if (otherInfos.Any())
                                 {
                                     main.Item().PaddingTop(15).PaddingBottom(4).Text("Informações").FontSize(14).Bold();
-                                    foreach (var info in resume.Infos)
+                                    foreach (var info in otherInfos)
                                     {
                                         main.Item().PaddingBottom(10).Column(infoCol =>
                                         {
@@ -210,29 +195,93 @@ namespace ResumeCV.Domain.Templates
                                     rightCol.Item().PaddingBottom(10).Height(1).Background(Colors.White);
                                     rightCol.Item().DefaultTextStyle(x => x.FontSize(8).FontColor(Colors.White))
                                         .Element(container =>
-                                            _markdownRenderer.Render(container, resume.Resume!, 8));
+                                            _markdownRenderer.Render(container, resume.Resume!, 8, true));
                                 }
 
                                 // Skills agregadas
                                 if (skills.Any())
                                 {
-                                    rightCol.Item().PaddingTop(20).PaddingBottom(10).Text("Skills").FontSize(14).Bold().FontColor(Colors.White);
-                                    rightCol.Item().Column(scol =>
+                                    rightCol.Item().PaddingTop(20).PaddingBottom(2).Text("Competências").FontSize(14).Bold().FontColor(Colors.White);
+                                    rightCol.Item().PaddingBottom(10).Height(1).Background(Colors.White);
+                                    
+                                    var skillsText = string.Join(" • ", skills);
+                                    rightCol.Item().Text(skillsText).FontSize(8).FontColor(Colors.White).Justify();
+                                }
+
+                                // Cursos / Formação
+                                if (resume.Courses != null && resume.Courses.Any())
+                                {
+                                    rightCol.Item().PaddingTop(20).PaddingBottom(2).Text("Formação / Cursos").FontSize(14).Bold().FontColor(Colors.White);
+                                    rightCol.Item().PaddingBottom(10).Height(1).Background(Colors.White);
+                                    
+                                    foreach (var course in resume.Courses)
                                     {
-                                        foreach (var s in skills)
+                                        rightCol.Item().PaddingBottom(10).Column(courseCol =>
                                         {
-                                            scol.Item().PaddingVertical(2).Text($"• {s}").FontSize(10).FontColor(Colors.White);
-                                        }
-                                    });
+                                            var period = FormatRange(course.StartDate, course.EndDate, false);
+                                            
+                                            courseCol.Item().Text(course.Title).Bold().FontSize(10).FontColor(Colors.White);
+                                            
+                                            // Institute e data na mesma linha
+                                            if (!string.IsNullOrWhiteSpace(course.Institute) || !string.IsNullOrWhiteSpace(period))
+                                            {
+                                                courseCol.Item().Row(r =>
+                                                {
+                                                    if (!string.IsNullOrWhiteSpace(course.Institute))
+                                                        r.RelativeItem().Text(course.Institute).FontSize(8).FontColor(Colors.White);
+                                                    
+                                                    if (!string.IsNullOrWhiteSpace(period))
+                                                        r.AutoItem().AlignRight().Text(period).FontSize(8).FontColor(Colors.White);
+                                                });
+                                            }
+
+                                            if (!string.IsNullOrWhiteSpace(course.Location))
+                                                courseCol.Item().Text($"Local: {course.Location}").FontSize(7).FontColor(Colors.Grey.Lighten2);
+
+                                            if (!string.IsNullOrWhiteSpace(course.Resume))
+                                            {
+                                                courseCol.Item().PaddingTop(2).DefaultTextStyle(x => x.FontSize(7).FontColor(Colors.White))
+                                                    .Element(container =>
+                                                        _markdownRenderer.Render(container, course.Resume, 7, true));
+                                            }
+
+                                            if (course.Skills != null && course.Skills.Any())
+                                            {
+                                                var cskills = string.Join(", ", course.Skills.Where(s => !string.IsNullOrWhiteSpace(s?.Name)).Select(s => s!.Name));
+                                                if (!string.IsNullOrWhiteSpace(cskills))
+                                                    courseCol.Item().PaddingTop(2).Text($"Skills: {cskills}").FontSize(7).FontColor(Colors.Grey.Lighten2).Justify();
+                                            }
+                                        });
+                                    }
                                 }
 
                                 // Languages
                                 if (languages.Any())
                                 {
-                                    rightCol.Item().PaddingTop(20).PaddingBottom(10).Text("Idiomas").FontSize(14).Bold().FontColor(Colors.White);
+                                    rightCol.Item().PaddingTop(20).PaddingBottom(2).Text("Idiomas").FontSize(14).Bold().FontColor(Colors.White);
+                                    rightCol.Item().PaddingBottom(10).Height(1).Background(Colors.White);
+                                    
                                     foreach (var lang in languages)
                                     {
-                                        rightCol.Item().PaddingVertical(2).Text($"• {lang.Language} — Nível {lang.Level}").FontSize(10).FontColor(Colors.White);
+                                        rightCol.Item().PaddingVertical(2).Row(r =>
+                                        {
+                                            // Nome do idioma à esquerda
+                                            r.RelativeItem().Text(lang.Language).FontSize(10).FontColor(Colors.White);
+                                            
+                                            // Nível no centro
+                                            r.AutoItem().PaddingHorizontal(5).Text(GetLevelText(lang.Level)).FontSize(9).FontColor(Colors.White);
+                                            
+                                            // 5 círculos à direita representando o nível
+                                            r.AutoItem().Row(bulletRow =>
+                                            {
+                                                for (int i = 1; i <= 5; i++)
+                                                {
+                                                    // Círculo preenchido se o nível for >= i, caso contrário círculo vazio
+                                                    string bullet = i <= lang.Level ? "●" : "○";
+                                                    bulletRow.AutoItem().PaddingLeft(2).Text(bullet).FontSize(10).FontColor(Colors.White);
+                                                }
+                                            });
+                                        });
                                     }
                                 }
                             });
@@ -309,7 +358,7 @@ namespace ResumeCV.Domain.Templates
             return data.ToArray();
         }
 
-        private static string FormatRange(DateTime? start, DateTime? end)
+        private static string FormatRange(DateTime? start, DateTime? end, bool showDuration = true)
         {
             if (!start.HasValue && !end.HasValue) return string.Empty;
 
@@ -323,7 +372,55 @@ namespace ResumeCV.Domain.Templates
 
             var s = start.HasValue ? Format(start.Value) : string.Empty;
             var e = end.HasValue ? Format(end.Value) : "Presente";
-            return string.IsNullOrWhiteSpace(s) ? e : $"{s} — {e}";
+
+            // Calcula a diferença em anos e meses
+            string duration = string.Empty;
+            if (showDuration && start.HasValue)
+            {
+                var endDate = end ?? DateTime.Now;
+                var years = endDate.Year - start.Value.Year;
+                var months = endDate.Month - start.Value.Month;
+
+                if (months < 0)
+                {
+                    years--;
+                    months += 12;
+                }
+
+                // Ajuste fino: se o dia final for menor que o dia inicial, reduz um mês
+                if (endDate.Day < start.Value.Day)
+                {
+                    months--;
+                    if (months < 0)
+                    {
+                        years--;
+                        months += 12;
+                    }
+                }
+
+                // Formata a duração
+                if (years > 0 && months > 0)
+                    duration = $" ({years}a{months}m)";
+                else if (years > 0)
+                    duration = $" ({years}a)";
+                else if (months > 0)
+                    duration = $" ({months}m)";
+            }
+
+            return string.IsNullOrWhiteSpace(s) ? e : $"{s} — {e}{duration}";
+        }
+
+        private static string GetLevelText(int level)
+        {
+            return level switch
+            {
+                1 => "Básico",
+                2 => "Intermediário",
+                3 => "Avançado",
+                4 => "Fluente",
+                5 => "Nativo",
+                _ => "Básico"
+            };
         }
     }
 }

@@ -9,7 +9,7 @@ public partial class ResumeCourse
 
     public long ResumeId { get; set; }
 
-    public int? CourseType { get; set; }
+    public int CourseType { get; set; }
 
     public string Title { get; set; } = null!;
 
@@ -22,6 +22,8 @@ public partial class ResumeCourse
     public DateTime? StartDate { get; set; }
 
     public DateTime? EndDate { get; set; }
+
+    public int Workload { get; set; }
 
     public virtual ICollection<ResumeCourseSkill> ResumeCourseSkills { get; set; } = new List<ResumeCourseSkill>();
 

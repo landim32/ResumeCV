@@ -2,6 +2,7 @@ using Castle.Core.Configuration;
 using Microsoft.Extensions.Configuration;
 using NTools.DTO.Settings;
 using ResumeCV.Application;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +12,12 @@ builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true
 
 builder.Services.Configure<NToolSetting>(builder.Configuration.GetSection("NTools"));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

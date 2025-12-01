@@ -9,6 +9,6 @@ namespace ResumeCV.Infra.Interfaces.Pdf
 {
     public interface IMarkdownRenderer
     {
-        void Render(IContainer container, string markdown, int fontSize);
+        void Render(IContainer container, string markdown, int fontSize, bool justify = false);
     }
 }

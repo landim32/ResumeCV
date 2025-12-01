@@ -5,7 +5,7 @@ using ResumeCV.Infra.Context;
 using ResumeCV.DTOs;
 using System;
 using System.Linq;
-using ResumeCV.Domain.Enums;
+using ResumeCV.DTOs.Enums;
 
 namespace ResumeCV.Infra.Mapping.Profiles
 {
@@ -61,13 +61,13 @@ namespace ResumeCV.Infra.Mapping.Profiles
                 });
 
             CreateMap<ResumeCourse, IResumeCourseModel>()
-                .ConstructUsing(src => new ResumeCourseModel(src.CourseId, src.ResumeId, src.Title, src.CourseType))
+                .ConstructUsing(src => new ResumeCourseModel(src.CourseId, src.ResumeId, src.Title, (CourseTypeEnum)src.CourseType, src.Workload))
                 .AfterMap((src, dest, ctx) =>
                 {
                     dest.UpdateLocation(src.Location);
                     dest.UpdateInstitute(src.Institute);
                     dest.UpdateDescription(src.Resume);
-                    dest.SetDates(ToUnspecified(src.StartDate) ?? default, ToUnspecified(src.EndDate) ?? default);
+                    dest.SetDates(ToUnspecified(src.StartDate) ?? default, ToUnspecified(src.EndDate));
 
                     dest.ClearSkills();
                     foreach (var cs in src.ResumeCourseSkills ?? Enumerable.Empty<ResumeCourseSkill>())
@@ -103,7 +103,7 @@ namespace ResumeCV.Infra.Mapping.Profiles
                     src.Position,
                     src.Business1,
                     ToUnspecified(src.StartDate) ?? default,
-                    ToUnspecified(src.EndDate) ?? default,
+                    ToUnspecified(src.EndDate),
                     src.Business2,
                     src.Location,
                     src.Resume))
@@ -121,7 +121,7 @@ namespace ResumeCV.Infra.Mapping.Profiles
                 .ConstructUsing(src => new ResumeLanguageModel(src.LanguageId, src.ResumeId, src.Language, src.Level));
 
             CreateMap<ResumeSkill, IResumeSkillModel>()
-                .ConstructUsing(src => new ResumeSkillModel(src.SkillId, src.Name, src.Slug));
+                .ConstructUsing(src => new ResumeSkillModel(src.SkillId, src.Name, (SkillTypeEnum) src.SkillType, src.Slug));
 
             // Domain -> Infra
             CreateMap<IResumeModel, Resume>()
@@ -146,7 +146,7 @@ namespace ResumeCV.Infra.Mapping.Profiles
                 {
                     CourseId = src.CourseId,
                     ResumeId = src.ResumeId,
-                    CourseType = src.CourseType,
+                    CourseType = (int)src.CourseType,
                     Title = src.Title,
                     Location = src.Location,
                     Institute = src.Institute,
@@ -226,15 +226,16 @@ namespace ResumeCV.Infra.Mapping.Profiles
                 .ConstructUsing(src => new ResumeSkill
                 {
                     SkillId = src.SkillId,
-                    //UserId = src.UserId,
+                    Name = src.Name,
                     Slug = src.Slug,
-                    Name = src.Name
+                    SkillType = (int)src.SkillType
                 });
 
             // Domain -> DTO
             CreateMap<IResumeSkillModel, ResumeSkillDTO>()
                 //.ForMember(d => d.SkillId, o => o.MapFrom(s => s.SkillId))
                 //.ForMember(d => d.UserId, o => o.MapFrom(s => s.UserId))
+                .ForMember(d => d.SkillType, o => o.MapFrom(s => (int)s.SkillType))
                 .ForMember(d => d.Slug, o => o.MapFrom(s => s.Slug))
                 .ForMember(d => d.Name, o => o.MapFrom(s => s.Name));
 
@@ -248,6 +249,7 @@ namespace ResumeCV.Infra.Mapping.Profiles
                 .ForMember(d => d.Resume, o => o.MapFrom(s => s.Resume))
                 .ForMember(d => d.StartDate, o => o.MapFrom(s => s.StartDate))
                 .ForMember(d => d.EndDate, o => o.MapFrom(s => s.EndDate))
+                .ForMember(d => d.Workload, o => o.MapFrom(s => s.Workload))
                 .ForMember(d => d.Skills, o => o.MapFrom(s => s.Skills));
 
             CreateMap<IResumeInfoModel, ResumeInfoDTO>()
@@ -298,17 +300,17 @@ namespace ResumeCV.Infra.Mapping.Profiles
             CreateMap<ResumeSkillDTO, IResumeSkillModel>()
                 //.ConstructUsing(src => new ResumeSkillModel(src.SkillId, src.UserId, src.Name, src.Slug));
                 //.ConstructUsing(src => new ResumeSkillModel(0, 0, src.Name, src.Slug));
-                .ConstructUsing(src => new ResumeSkillModel(0, src.Name, src.Slug));
+                .ConstructUsing(src => new ResumeSkillModel(0, src.Name, (SkillTypeEnum) src.SkillType, src.Slug));
 
             CreateMap<ResumeCourseDTO, IResumeCourseModel>()
                 //.ConstructUsing(src => new ResumeCourseModel(src.CourseId, src.ResumeId, src.Title, src.CourseType))
-                .ConstructUsing(src => new ResumeCourseModel(src.CourseId, 0, src.Title, src.CourseType))
+                .ConstructUsing(src => new ResumeCourseModel(src.CourseId, 0, src.Title, src.CourseType, src.Workload))
                 .AfterMap((src, dest, ctx) =>
                 {
                     dest.UpdateLocation(src.Location);
                     dest.UpdateInstitute(src.Institute);
                     dest.UpdateDescription(src.Resume);
-                    dest.SetDates(ToUnspecified(src.StartDate) ?? default, ToUnspecified(src.EndDate) ?? default);
+                    dest.SetDates(ToUnspecified(src.StartDate) ?? default, ToUnspecified(src.EndDate));
 
                     dest.ClearSkills();
                     foreach (var s in src.Skills ?? Enumerable.Empty<ResumeSkillDTO>())
@@ -343,7 +345,7 @@ namespace ResumeCV.Infra.Mapping.Profiles
                     src.Position,
                     src.Business1,
                     ToUnspecified(src.StartDate) ?? default,
-                    ToUnspecified(src.EndDate) ?? default,
+                    ToUnspecified(src.EndDate),
                     src.Business2,
                     src.Location,
                     src.Resume))

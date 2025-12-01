@@ -7,7 +7,7 @@ public partial class ResumeSkill
 {
     public long SkillId { get; set; }
 
-    public long UserId { get; set; }
+    public int SkillType { get; set; }
 
     public string Slug { get; set; } = null!;
 

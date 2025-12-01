@@ -1,4 +1,5 @@
 ﻿using ResumeCV.Domain.Entities.Interfaces;
+using ResumeCV.DTOs.Enums;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,21 +17,18 @@ namespace ResumeCV.Domain.Entities
     {
         // Propriedades (seguindo os nomes do modelo de infraestrutura)
         public long SkillId { get; private set; }
-        //public long UserId { get; private set; }
+        public SkillTypeEnum SkillType { get; private set; }
         public string Slug { get; private set; } = null!;
         public string Name { get; private set; } = null!;
 
-        //public ResumeSkillModel(long skillId, long userId, string name, string? slug = null)
-        public ResumeSkillModel(long skillId, string name, string? slug = null)
+        public ResumeSkillModel(long skillId, string name, SkillTypeEnum skillType, string? slug = null)
         {
-            //if (skillId <= 0) throw new ArgumentException("SkillId deve ser maior que zero.", nameof(skillId));
-            //if (userId <= 0) throw new ArgumentException("UserId deve ser maior que zero.", nameof(userId));
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name é obrigatório.", nameof(name));
             if (name.Length > 200) throw new ArgumentException("Name excede o tamanho máximo (200).", nameof(name));
 
             SkillId = skillId;
-            //UserId = userId;
             Name = name.Trim();
+            SkillType = skillType;
             Slug = string.IsNullOrWhiteSpace(slug) ? GenerateSlug(Name) : GenerateSlug(slug);
         }
 
@@ -43,6 +41,11 @@ namespace ResumeCV.Domain.Entities
             Name = name.Trim();
             // Quando o nome muda, atualizamos o slug por padrão para manter consistência
             Slug = GenerateSlug(Name);
+        }
+
+        public void UpdateSkillType(SkillTypeEnum skillType)
+        {
+            SkillType = skillType;
         }
 
         public void SetCustomSlug(string slug)

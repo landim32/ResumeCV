@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using ResumeCV.DTOs.Enums;
 using System;
 using System.Collections.Generic;
 
@@ -8,13 +10,10 @@ namespace ResumeCV.DTOs
     {
         [JsonProperty("courseId")]
         public long CourseId { get; set; }
-        /*
-        [JsonProperty("resumeId")]
-        public long ResumeId { get; set; }
-        */
 
         [JsonProperty("courseType", NullValueHandling = NullValueHandling.Ignore)]
-        public int? CourseType { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
+        public CourseTypeEnum CourseType { get; set; }
 
         [JsonProperty("title")]
         public string Title { get; set; } = string.Empty;
@@ -33,6 +32,8 @@ namespace ResumeCV.DTOs
 
         [JsonProperty("endDate", NullValueHandling = NullValueHandling.Ignore)]
         public DateTime? EndDate { get; set; }
+        [JsonProperty("workload")]
+        public int Workload { get; set; }
 
         [JsonProperty("skills", NullValueHandling = NullValueHandling.Ignore)]
         public IList<ResumeSkillDTO>? Skills { get; set; } = new List<ResumeSkillDTO>();

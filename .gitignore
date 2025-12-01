@@ -3,3 +3,5 @@
 /Backend/ResumeCV/ResumeCV.WebAPI/appsettings.Docker.json
 /Backend/ResumeCV/ResumeCV.WebAPI/appsettings.Template.json
 /Backend/ResumeCV/ResumeCV.Console/appsettings.Development.json
+/Backend/ResumeCV/ResumeCV.API/appsettings.Development.json
+/Backend/ResumeCV/ResumeCV.API/appsettings.Docker.json

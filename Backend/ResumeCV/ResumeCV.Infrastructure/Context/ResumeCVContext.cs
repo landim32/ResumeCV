@@ -99,6 +99,9 @@ public partial class ResumeCVContext : DbContext
             entity.Property(e => e.Title)
                 .HasMaxLength(560)
                 .HasColumnName("title");
+            entity.Property(e => e.Workload)
+                .HasDefaultValue(0)
+                .HasColumnName("workload");
 
             entity.HasOne(d => d.ResumeNavigation).WithMany(p => p.ResumeCourses)
                 .HasForeignKey(d => d.ResumeId)
@@ -263,10 +266,10 @@ public partial class ResumeCVContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(120)
                 .HasColumnName("name");
+            entity.Property(e => e.SkillType).HasColumnName("skill_type");
             entity.Property(e => e.Slug)
                 .HasMaxLength(120)
                 .HasColumnName("slug");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -8,7 +8,7 @@ namespace ResumeCV.Infra.Interfaces.Repositories
 {
     public interface IResumeSkillRepository<TModel>
     {
-        IEnumerable<TModel> ListByUserId(long userId);
+        IEnumerable<TModel> List();
         TModel? GetById(long resumeId);
         TModel Add(TModel resume);
         TModel Update(TModel resume);
