@@ -24,6 +24,7 @@ namespace ResumeCV.Domain.Entities.Interfaces
         IList<IResumeCourseModel> Courses { get; }
         IList<IResumeInfoModel> Infos { get; }
         IList<IResumeJobModel> Jobs { get; }
+        IList<IResumeProjectModel> Projects { get; }
         IList<IResumeLanguageModel> Languages { get; }
 
         void UpdateName(string name);
@@ -42,6 +43,8 @@ namespace ResumeCV.Domain.Entities.Interfaces
         void AddInfo(IResumeInfoModel info);
         void ClearJobs();
         void AddJob(IResumeJobModel job);
+        void ClearProjects();
+        void AddProject(IResumeProjectModel project);
         void ClearLanguages();
         void AddLanguage(IResumeLanguageModel language);
     }

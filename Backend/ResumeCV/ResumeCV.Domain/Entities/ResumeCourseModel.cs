@@ -19,10 +19,10 @@ namespace ResumeCV.Domain.Entities
         public string? Resume { get; private set; }
         public DateTime? StartDate { get; private set; }
         public DateTime? EndDate { get; private set; }
-        public int Workload { get; private set; }
+        public int? Workload { get; private set; }
         public IList<IResumeSkillModel> Skills { get => _skills; }
 
-        public ResumeCourseModel(long courseId, long resumeId, string title, CourseTypeEnum courseType, int workload)
+        public ResumeCourseModel(long courseId, long resumeId, string title, CourseTypeEnum courseType, int? workload)
         {
             //if (courseId <= 0) throw new ArgumentException("CourseId deve ser maior que zero.", nameof(courseId));
             //if (resumeId <= 0) throw new ArgumentException("ResumeId deve ser maior que zero.", nameof(resumeId));
@@ -89,7 +89,7 @@ namespace ResumeCV.Domain.Entities
             EndDate = end;
         }
 
-        public void SetWorkload(int workload)
+        public void SetWorkload(int? workload)
         {
             Workload = workload;
         }

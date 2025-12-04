@@ -16,7 +16,7 @@ namespace ResumeCV.Domain.Entities.Interfaces
         string? Resume { get; }
         DateTime? StartDate { get; }
         DateTime? EndDate { get; }
-        int Workload { get; }
+        int? Workload { get; }
         IList<IResumeSkillModel> Skills { get; }
 
         // Operações de domínio (métodos públicos expostos pela entidade)
@@ -30,7 +30,7 @@ namespace ResumeCV.Domain.Entities.Interfaces
         void SetStartDate(DateTime? start);
         void SetEndDate(DateTime? end);
         void SetDates(DateTime? start, DateTime? end);
-        void SetWorkload(int workload);
+        void SetWorkload(int? workload);
 
         void ClearSkills();
         public void AddSkill(IResumeSkillModel skill);

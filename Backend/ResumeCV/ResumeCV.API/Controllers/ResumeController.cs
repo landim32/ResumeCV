@@ -54,16 +54,17 @@ namespace ResumeCV.WebAPI.Controllers
             return CreatedAtAction(nameof(Get), new { id }, null);
         }
 
-        // PUT /Resume/{id}
-        [HttpPut("{id:long}")]
-        public ActionResult Update(long id, [FromBody] ResumeDTO resume)
+        // PUT /Resume
+        [HttpPut]
+        public ActionResult Update([FromBody] ResumeDTO resume)
         {
-            if (id <= 0) return BadRequest("id deve ser maior que zero.");
+            //if (id <= 0) return BadRequest("id deve ser maior que zero.");
             if (resume is null) return BadRequest("resume é obrigatório.");
+            if (resume.ResumeId <= 0) return BadRequest("id deve ser maior que zero.");
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             // garante consistência do id
-            resume.ResumeId = id;
+            //resume.ResumeId = id;
 
             _resumeService.Update(resume);
             return NoContent();

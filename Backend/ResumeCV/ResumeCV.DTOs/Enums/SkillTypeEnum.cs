@@ -12,19 +12,19 @@ namespace ResumeCV.DTOs.Enums
     public enum SkillTypeEnum
     {
         Programming = 1,
-        Database = 4,
+        Database = 2,
+        Methodology = 3,
+        Tools = 4,
         Infraestruture = 5,
         ArquitetureDesign = 6,
-        Tools = 7,
-        DevOps = 8,
-        Methodology = 9,
-        Security = 11,
-        Cloud = 12,
-        Tests = 13,
-        Agile = 14,
-        OperatingSystem = 15,
-        Library = 16,
-        Observability = 17,
-        SoftSkill = 18
+        DevOps = 7,
+        Security = 8,
+        Cloud = 9,
+        Tests = 10,
+        Agile = 11,
+        OperatingSystem = 12,
+        Library = 13,
+        Observability = 14,
+        SoftSkill = 15
     }
 }

@@ -42,6 +42,11 @@ namespace ResumeCV.Infra.Repositories
                 job.ResumeId = entity.ResumeId;
             }
 
+            foreach (var project in entity.ResumeProjects)
+            {
+                project.ResumeId = entity.ResumeId;
+            }
+
             foreach (var language in entity.ResumeLanguages)
             {
                 language.ResumeId = entity.ResumeId;
@@ -57,78 +62,143 @@ namespace ResumeCV.Infra.Repositories
         {
             if (resume is null) throw new ArgumentNullException(nameof(resume));
 
-            var existing = _context.Resumes.FirstOrDefault(r => r.ResumeId == resume.ResumeId);
+            // Carregar a entidade existente com todos os relacionamentos
+            var existing = _context.Resumes
+                .AsNoTracking()
+                .AsSplitQuery()
+                .Include(r => r.ResumeCourses)
+                    .ThenInclude(c => c.Skills)
+                .Include(r => r.ResumeInfos)
+                    .ThenInclude(i => i.Skills)
+                .Include(r => r.ResumeJobs)
+                    .ThenInclude(j => j.Skills)
+                .Include(r => r.ResumeProjects)
+                    .ThenInclude(p => p.Skills)
+                .Include(r => r.ResumeLanguages)
+                .FirstOrDefault(r => r.ResumeId == resume.ResumeId);
+
             if (existing == null) throw new KeyNotFoundException($"Resume with id {resume.ResumeId} not found.");
 
-            _context.ResumeCourseSkills.RemoveRange(_context.ResumeCourseSkills.Where(x => x.Course.ResumeId == existing.ResumeId));
-            _context.ResumeCourses.RemoveRange(_context.ResumeCourses.Where(x => x.ResumeId == existing.ResumeId));
-            _context.ResumeInfoSkills.RemoveRange(_context.ResumeInfoSkills.Where(x => x.Info.ResumeId == existing.ResumeId));
-            _context.ResumeInfos.RemoveRange(_context.ResumeInfos.Where(x => x.ResumeId == existing.ResumeId));
-            _context.ResumeJobSkills.RemoveRange(_context.ResumeJobSkills.Where(x => x.Job.ResumeId == existing.ResumeId));
-            _context.ResumeJobs.RemoveRange(_context.ResumeJobs.Where(x => x.ResumeId == existing.ResumeId));
-            _context.ResumeLanguages.RemoveRange(_context.ResumeLanguages.Where(x => x.ResumeId == existing.ResumeId));
-            _context.SaveChanges();
+            // Remover todos os filhos antigos ANTES do mapeamento
+            _context.ResumeCourses.RemoveRange(existing.ResumeCourses);
+            _context.ResumeInfos.RemoveRange(existing.ResumeInfos);
+            _context.ResumeJobs.RemoveRange(existing.ResumeJobs);
+            _context.ResumeProjects.RemoveRange(existing.ResumeProjects);
+            _context.ResumeLanguages.RemoveRange(existing.ResumeLanguages);
 
+            // Limpar as coleções
+            existing.ResumeCourses.Clear();
+            existing.ResumeInfos.Clear();
+            existing.ResumeJobs.Clear();
+            existing.ResumeProjects.Clear();
+            existing.ResumeLanguages.Clear();
+
+            // Agora faz o mapeamento
             _mapper.Map(resume, existing);
 
-            foreach (var course in existing.ResumeCourses) {
-                course.CourseId = 0;
+            // Processar skills para reutilizar existentes
+            foreach (var course in existing.ResumeCourses) 
+            {
                 course.ResumeId = existing.ResumeId;
-                foreach (var skill in course.ResumeCourseSkills)
+                var updatedSkills = new List<ResumeSkill>();
+                
+                foreach (var skill in course.Skills)
                 {
-                    skill.CourseSkillId = 0;
-                    var existingSkill = _context
-                        .ResumeSkills
-                        .Where(x => x.Slug == skill.Skill.Slug)
-                        .FirstOrDefault();
-                    if (existingSkill != null) {
-                        existingSkill.SkillType = skill.Skill.SkillType;
-                        skill.SkillId = existingSkill.SkillId;
+                    var existingSkill = _context.ResumeSkills
+                        .FirstOrDefault(x => x.Slug == skill.Slug);
+                    
+                    if (existingSkill != null) 
+                    {
+                        existingSkill.SkillType = skill.SkillType;
+                        existingSkill.Name = skill.Name;
+                        updatedSkills.Add(existingSkill);
+                    }
+                    else
+                    {
+                        updatedSkills.Add(skill);
                     }
                 }
+                
+                course.Skills = updatedSkills;
             }
 
             foreach (var info in existing.ResumeInfos)
             {
-                info.InfoId = 0;
                 info.ResumeId = existing.ResumeId;
-                foreach (var skill in info.ResumeInfoSkills)
+                var updatedSkills = new List<ResumeSkill>();
+                
+                foreach (var skill in info.Skills)
                 {
-                    skill.InfoSkillId = 0;
-                    var existingSkill = _context
-                        .ResumeSkills
-                        .Where(x => x.Slug == skill.Skill.Slug)
-                        .FirstOrDefault();
+                    var existingSkill = _context.ResumeSkills
+                        .FirstOrDefault(x => x.Slug == skill.Slug);
+                    
                     if (existingSkill != null)
                     {
-                        existingSkill.SkillType = skill.Skill.SkillType;
-                        skill.SkillId = existingSkill.SkillId;
+                        existingSkill.SkillType = skill.SkillType;
+                        existingSkill.Name = skill.Name;
+                        updatedSkills.Add(existingSkill);
+                    }
+                    else
+                    {
+                        updatedSkills.Add(skill);
                     }
                 }
+                
+                info.Skills = updatedSkills;
             }
 
             foreach (var job in existing.ResumeJobs)
             {
-                job.JobId = 0;
                 job.ResumeId = existing.ResumeId;
-                foreach (var skill in job.ResumeJobSkills)
+                var updatedSkills = new List<ResumeSkill>();
+                
+                foreach (var skill in job.Skills)
                 {
-                    skill.JobSkillId = 0;
-                    var existingSkill = _context
-                        .ResumeSkills
-                        .Where(x => x.Slug == skill.Skill.Slug)
-                        .FirstOrDefault();
+                    var existingSkill = _context.ResumeSkills
+                        .FirstOrDefault(x => x.Slug == skill.Slug);
+                    
                     if (existingSkill != null)
                     {
-                        existingSkill.SkillType = skill.Skill.SkillType;
-                        skill.SkillId = existingSkill.SkillId;
+                        existingSkill.SkillType = skill.SkillType;
+                        existingSkill.Name = skill.Name;
+                        updatedSkills.Add(existingSkill);
+                    }
+                    else
+                    {
+                        updatedSkills.Add(skill);
                     }
                 }
+                
+                job.Skills = updatedSkills;
+            }
+
+            foreach (var project in existing.ResumeProjects)
+            {
+                project.ResumeId = existing.ResumeId;
+                var updatedSkills = new List<ResumeSkill>();
+                
+                foreach (var skill in project.Skills)
+                {
+                    var existingSkill = _context.ResumeSkills
+                        .FirstOrDefault(x => x.Slug == skill.Slug);
+                    
+                    if (existingSkill != null)
+                    {
+                        existingSkill.SkillType = skill.SkillType;
+                        existingSkill.Name = skill.Name;
+                        updatedSkills.Add(existingSkill);
+                    }
+                    else
+                    {
+                        updatedSkills.Add(skill);
+                    }
+                }
+                
+                project.Skills = updatedSkills;
             }
 
             foreach (var language in existing.ResumeLanguages)
             {
-                language.LanguageId = 0;
                 language.ResumeId = existing.ResumeId;
             }
 
@@ -138,31 +208,26 @@ namespace ResumeCV.Infra.Repositories
         public void Delete(long resumeId)
         {
             var entity = _context.Resumes
+                .AsNoTracking()
+                .AsSplitQuery()
                 .Include(r => r.ResumeCourses)
-                    .ThenInclude(c => c.ResumeCourseSkills)
+                    .ThenInclude(c => c.Skills)
                 .Include(r => r.ResumeInfos)
-                    .ThenInclude(i => i.ResumeInfoSkills)
+                    .ThenInclude(i => i.Skills)
                 .Include(r => r.ResumeJobs)
-                    .ThenInclude(j => j.ResumeJobSkills)
+                    .ThenInclude(j => j.Skills)
+                .Include(r => r.ResumeProjects)
+                    .ThenInclude(p => p.Skills)
                 .Include(r => r.ResumeLanguages)
                 .FirstOrDefault(r => r.ResumeId == resumeId);
 
             if (entity == null) return;
 
-            // Remover entradas de junção (segurança caso não exista cascade)
-            var courseSkillJoins = entity.ResumeCourses.SelectMany(c => c.ResumeCourseSkills).ToList();
-            if (courseSkillJoins.Count > 0) _context.ResumeCourseSkills.RemoveRange(courseSkillJoins);
-
-            var infoSkillJoins = entity.ResumeInfos.SelectMany(i => i.ResumeInfoSkills).ToList();
-            if (infoSkillJoins.Count > 0) _context.ResumeInfoSkills.RemoveRange(infoSkillJoins);
-
-            var jobSkillJoins = entity.ResumeJobs.SelectMany(j => j.ResumeJobSkills).ToList();
-            if (jobSkillJoins.Count > 0) _context.ResumeJobSkills.RemoveRange(jobSkillJoins);
-
             // Remover entidades filhas
             if (entity.ResumeCourses.Any()) _context.ResumeCourses.RemoveRange(entity.ResumeCourses);
             if (entity.ResumeInfos.Any()) _context.ResumeInfos.RemoveRange(entity.ResumeInfos);
             if (entity.ResumeJobs.Any()) _context.ResumeJobs.RemoveRange(entity.ResumeJobs);
+            if (entity.ResumeProjects.Any()) _context.ResumeProjects.RemoveRange(entity.ResumeProjects);
             if (entity.ResumeLanguages.Any()) _context.ResumeLanguages.RemoveRange(entity.ResumeLanguages);
 
             _context.Resumes.Remove(entity);
@@ -172,15 +237,16 @@ namespace ResumeCV.Infra.Repositories
         public IResumeModel? GetById(long resumeId)
         {
             var entity = _context.Resumes
+                .AsNoTracking()
+                .AsSplitQuery()
                 .Include(r => r.ResumeCourses)
-                    .ThenInclude(c => c.ResumeCourseSkills)
-                        .ThenInclude(cs => cs.Skill)
+                    .ThenInclude(c => c.Skills)
                 .Include(r => r.ResumeInfos)
-                    .ThenInclude(i => i.ResumeInfoSkills)
-                        .ThenInclude(ip => ip.Skill)
+                    .ThenInclude(i => i.Skills)
                 .Include(r => r.ResumeJobs)
-                    .ThenInclude(j => j.ResumeJobSkills)
-                        .ThenInclude(js => js.Skill)
+                    .ThenInclude(j => j.Skills)
+                .Include(r => r.ResumeProjects)
+                    .ThenInclude(p => p.Skills)
                 .Include(r => r.ResumeLanguages)
                 .FirstOrDefault(r => r.ResumeId == resumeId);
 
@@ -194,6 +260,16 @@ namespace ResumeCV.Infra.Repositories
         {
             var entities = _context.Resumes
                 .AsNoTracking()
+                .AsSplitQuery()
+                .Include(r => r.ResumeCourses)
+                    .ThenInclude(c => c.Skills)
+                .Include(r => r.ResumeInfos)
+                    .ThenInclude(i => i.Skills)
+                .Include(r => r.ResumeJobs)
+                    .ThenInclude(j => j.Skills)
+                .Include(r => r.ResumeProjects)
+                    .ThenInclude(p => p.Skills)
+                .Include(r => r.ResumeLanguages)
                 .Where(r => r.UserId == userId)
                 .OrderByDescending(r => r.ResumeId)
                 .ToList();

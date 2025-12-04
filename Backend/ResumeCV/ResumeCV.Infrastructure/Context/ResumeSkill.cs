@@ -13,9 +13,11 @@ public partial class ResumeSkill
 
     public string Name { get; set; } = null!;
 
-    public virtual ICollection<ResumeCourseSkill> ResumeCourseSkills { get; set; } = new List<ResumeCourseSkill>();
+    public virtual ICollection<ResumeCourse> Courses { get; set; } = new List<ResumeCourse>();
 
-    public virtual ICollection<ResumeInfoSkill> ResumeInfoSkills { get; set; } = new List<ResumeInfoSkill>();
+    public virtual ICollection<ResumeInfo> Infos { get; set; } = new List<ResumeInfo>();
 
-    public virtual ICollection<ResumeJobSkill> ResumeJobSkills { get; set; } = new List<ResumeJobSkill>();
+    public virtual ICollection<ResumeJob> Jobs { get; set; } = new List<ResumeJob>();
+
+    public virtual ICollection<ResumeProject> Projects { get; set; } = new List<ResumeProject>();
 }

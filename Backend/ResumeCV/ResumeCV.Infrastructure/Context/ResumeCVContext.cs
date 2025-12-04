@@ -19,17 +19,13 @@ public partial class ResumeCVContext : DbContext
 
     public virtual DbSet<ResumeCourse> ResumeCourses { get; set; }
 
-    public virtual DbSet<ResumeCourseSkill> ResumeCourseSkills { get; set; }
-
     public virtual DbSet<ResumeInfo> ResumeInfos { get; set; }
-
-    public virtual DbSet<ResumeInfoSkill> ResumeInfoSkills { get; set; }
 
     public virtual DbSet<ResumeJob> ResumeJobs { get; set; }
 
-    public virtual DbSet<ResumeJobSkill> ResumeJobSkills { get; set; }
-
     public virtual DbSet<ResumeLanguage> ResumeLanguages { get; set; }
+
+    public virtual DbSet<ResumeProject> ResumeProjects { get; set; }
 
     public virtual DbSet<ResumeSkill> ResumeSkills { get; set; }
 
@@ -107,27 +103,24 @@ public partial class ResumeCVContext : DbContext
                 .HasForeignKey(d => d.ResumeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("resume_courses_resume_id_fkey");
-        });
 
-        modelBuilder.Entity<ResumeCourseSkill>(entity =>
-        {
-            entity.HasKey(e => e.CourseSkillId).HasName("resume_course_skills_pkey");
-
-            entity.ToTable("resume_course_skills");
-
-            entity.Property(e => e.CourseSkillId).HasColumnName("course_skill_id");
-            entity.Property(e => e.CourseId).HasColumnName("course_id");
-            entity.Property(e => e.SkillId).HasColumnName("skill_id");
-
-            entity.HasOne(d => d.Course).WithMany(p => p.ResumeCourseSkills)
-                .HasForeignKey(d => d.CourseId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("resume_course_skills_course_id_fkey");
-
-            entity.HasOne(d => d.Skill).WithMany(p => p.ResumeCourseSkills)
-                .HasForeignKey(d => d.SkillId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("resume_course_skills_skill_id_fkey");
+            entity.HasMany(d => d.Skills).WithMany(p => p.Courses)
+                .UsingEntity<Dictionary<string, object>>(
+                    "ResumeCourseSkill",
+                    r => r.HasOne<ResumeSkill>().WithMany()
+                        .HasForeignKey("SkillId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("resume_course_skills_skill_id_fkey"),
+                    l => l.HasOne<ResumeCourse>().WithMany()
+                        .HasForeignKey("CourseId")
+                        .HasConstraintName("resume_course_skills_course_id_fkey"),
+                    j =>
+                    {
+                        j.HasKey("CourseId", "SkillId").HasName("resume_course_skills_pkey");
+                        j.ToTable("resume_course_skills");
+                        j.IndexerProperty<long>("CourseId").HasColumnName("course_id");
+                        j.IndexerProperty<long>("SkillId").HasColumnName("skill_id");
+                    });
         });
 
         modelBuilder.Entity<ResumeInfo>(entity =>
@@ -155,27 +148,24 @@ public partial class ResumeCVContext : DbContext
                 .HasForeignKey(d => d.ResumeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("resume_infos_resume_id_fkey");
-        });
 
-        modelBuilder.Entity<ResumeInfoSkill>(entity =>
-        {
-            entity.HasKey(e => e.InfoSkillId).HasName("resume_info_skills_pkey");
-
-            entity.ToTable("resume_info_skills");
-
-            entity.Property(e => e.InfoSkillId).HasColumnName("info_skill_id");
-            entity.Property(e => e.InfoId).HasColumnName("info_id");
-            entity.Property(e => e.SkillId).HasColumnName("skill_id");
-
-            entity.HasOne(d => d.Info).WithMany(p => p.ResumeInfoSkills)
-                .HasForeignKey(d => d.InfoId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("resume_info_skills_info_id_fkey");
-
-            entity.HasOne(d => d.Skill).WithMany(p => p.ResumeInfoSkills)
-                .HasForeignKey(d => d.SkillId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("resume_info_skills_skill_id_fkey");
+            entity.HasMany(d => d.Skills).WithMany(p => p.Infos)
+                .UsingEntity<Dictionary<string, object>>(
+                    "ResumeInfoSkill",
+                    r => r.HasOne<ResumeSkill>().WithMany()
+                        .HasForeignKey("SkillId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("resume_info_skills_skill_id_fkey"),
+                    l => l.HasOne<ResumeInfo>().WithMany()
+                        .HasForeignKey("InfoId")
+                        .HasConstraintName("resume_info_skills_info_id_fkey"),
+                    j =>
+                    {
+                        j.HasKey("InfoId", "SkillId").HasName("resume_info_skills_pkey");
+                        j.ToTable("resume_info_skills");
+                        j.IndexerProperty<long>("InfoId").HasColumnName("info_id");
+                        j.IndexerProperty<long>("SkillId").HasColumnName("skill_id");
+                    });
         });
 
         modelBuilder.Entity<ResumeJob>(entity =>
@@ -212,27 +202,24 @@ public partial class ResumeCVContext : DbContext
                 .HasForeignKey(d => d.ResumeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("resume_jobs_resume_id_fkey");
-        });
 
-        modelBuilder.Entity<ResumeJobSkill>(entity =>
-        {
-            entity.HasKey(e => e.JobSkillId).HasName("resume_job_skills_pkey");
-
-            entity.ToTable("resume_job_skills");
-
-            entity.Property(e => e.JobSkillId).HasColumnName("job_skill_id");
-            entity.Property(e => e.JobId).HasColumnName("job_id");
-            entity.Property(e => e.SkillId).HasColumnName("skill_id");
-
-            entity.HasOne(d => d.Job).WithMany(p => p.ResumeJobSkills)
-                .HasForeignKey(d => d.JobId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("resume_job_skills_job_id_fkey");
-
-            entity.HasOne(d => d.Skill).WithMany(p => p.ResumeJobSkills)
-                .HasForeignKey(d => d.SkillId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("resume_job_skills_skill_id_fkey");
+            entity.HasMany(d => d.Skills).WithMany(p => p.Jobs)
+                .UsingEntity<Dictionary<string, object>>(
+                    "ResumeJobSkill",
+                    r => r.HasOne<ResumeSkill>().WithMany()
+                        .HasForeignKey("SkillId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("resume_job_skills_skill_id_fkey"),
+                    l => l.HasOne<ResumeJob>().WithMany()
+                        .HasForeignKey("JobId")
+                        .HasConstraintName("resume_job_skills_job_id_fkey"),
+                    j =>
+                    {
+                        j.HasKey("JobId", "SkillId").HasName("resume_job_skills_pkey");
+                        j.ToTable("resume_job_skills");
+                        j.IndexerProperty<long>("JobId").HasColumnName("job_id");
+                        j.IndexerProperty<long>("SkillId").HasColumnName("skill_id");
+                    });
         });
 
         modelBuilder.Entity<ResumeLanguage>(entity =>
@@ -254,6 +241,54 @@ public partial class ResumeCVContext : DbContext
                 .HasForeignKey(d => d.ResumeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("resume_languages_resume_id_fkey");
+        });
+
+        modelBuilder.Entity<ResumeProject>(entity =>
+        {
+            entity.HasKey(e => e.ProjectId).HasName("resume_projects_pkey");
+
+            entity.ToTable("resume_projects");
+
+            entity.Property(e => e.ProjectId).HasColumnName("project_id");
+            entity.Property(e => e.Resume)
+                .HasMaxLength(3000)
+                .HasColumnName("resume");
+            entity.Property(e => e.ResumeId).HasColumnName("resume_id");
+            entity.Property(e => e.StartDate)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("start_date");
+            entity.Property(e => e.Status)
+                .HasDefaultValue(1)
+                .HasColumnName("status");
+            entity.Property(e => e.Title)
+                .HasMaxLength(520)
+                .HasColumnName("title");
+            entity.Property(e => e.Url)
+                .HasMaxLength(520)
+                .HasColumnName("url");
+
+            entity.HasOne(d => d.ResumeNavigation).WithMany(p => p.ResumeProjects)
+                .HasForeignKey(d => d.ResumeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("resume_projects_resume_id_fkey");
+
+            entity.HasMany(d => d.Skills).WithMany(p => p.Projects)
+                .UsingEntity<Dictionary<string, object>>(
+                    "ResumeProjectSkill",
+                    r => r.HasOne<ResumeSkill>().WithMany()
+                        .HasForeignKey("SkillId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("resume_project_skills_skill_id_fkey"),
+                    l => l.HasOne<ResumeProject>().WithMany()
+                        .HasForeignKey("ProjectId")
+                        .HasConstraintName("resume_project_skills_project_id_fkey"),
+                    j =>
+                    {
+                        j.HasKey("ProjectId", "SkillId").HasName("resume_project_skills_pkey");
+                        j.ToTable("resume_project_skills");
+                        j.IndexerProperty<long>("ProjectId").HasColumnName("project_id");
+                        j.IndexerProperty<long>("SkillId").HasColumnName("skill_id");
+                    });
         });
 
         modelBuilder.Entity<ResumeSkill>(entity =>

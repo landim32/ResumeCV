@@ -47,6 +47,9 @@ namespace ResumeCV.DTOs
         [JsonProperty("jobs", NullValueHandling = NullValueHandling.Ignore)]
         public IList<ResumeJobDTO>? Jobs { get; set; } = new List<ResumeJobDTO>();
 
+        [JsonProperty("projects", NullValueHandling = NullValueHandling.Ignore)]
+        public IList<ResumeProjectDTO>? Projects { get; set; } = new List<ResumeProjectDTO>();
+
         [JsonProperty("languages", NullValueHandling = NullValueHandling.Ignore)]
         public IList<ResumeLanguageDTO>? Languages { get; set; } = new List<ResumeLanguageDTO>();
     }

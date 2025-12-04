@@ -34,4 +34,6 @@ public partial class Resume
     public virtual ICollection<ResumeJob> ResumeJobs { get; set; } = new List<ResumeJob>();
 
     public virtual ICollection<ResumeLanguage> ResumeLanguages { get; set; } = new List<ResumeLanguage>();
+
+    public virtual ICollection<ResumeProject> ResumeProjects { get; set; } = new List<ResumeProject>();
 }

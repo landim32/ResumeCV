@@ -32,8 +32,8 @@ namespace ResumeCV.DTOs
 
         [JsonProperty("endDate", NullValueHandling = NullValueHandling.Ignore)]
         public DateTime? EndDate { get; set; }
-        [JsonProperty("workload")]
-        public int Workload { get; set; }
+        [JsonProperty("workload", NullValueHandling = NullValueHandling.Ignore)]
+        public int? Workload { get; set; }
 
         [JsonProperty("skills", NullValueHandling = NullValueHandling.Ignore)]
         public IList<ResumeSkillDTO>? Skills { get; set; } = new List<ResumeSkillDTO>();

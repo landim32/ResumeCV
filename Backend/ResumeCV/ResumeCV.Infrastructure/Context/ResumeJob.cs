@@ -23,7 +23,7 @@ public partial class ResumeJob
 
     public string? Resume { get; set; }
 
-    public virtual ICollection<ResumeJobSkill> ResumeJobSkills { get; set; } = new List<ResumeJobSkill>();
-
     public virtual Resume ResumeNavigation { get; set; } = null!;
+
+    public virtual ICollection<ResumeSkill> Skills { get; set; } = new List<ResumeSkill>();
 }

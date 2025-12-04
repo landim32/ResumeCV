@@ -18,6 +18,7 @@ namespace ResumeCV.Domain.Templates
     {
         private const int MAIN_COLUMN_RATIO = 7;
         private const int RIGHT_COLUMN_RATIO = 4;
+        private const int PROJECT_IN_MAIN = 3;
         private readonly IMarkdownRenderer _markdownRenderer;
 
         public PdfTemplate1(IMarkdownRenderer markdownRenderer)
@@ -34,10 +35,13 @@ namespace ResumeCV.Domain.Templates
             // Coleta de dados auxiliares
             var skills = resume.Courses
                                .SelectMany(c => c.Skills ?? Enumerable.Empty<IResumeSkillModel>())
+                               .Concat(resume.Courses.SelectMany(i => i.Skills ?? Enumerable.Empty<IResumeSkillModel>()))
                                .Concat(resume.Infos.SelectMany(i => i.Skills ?? Enumerable.Empty<IResumeSkillModel>()))
                                .Concat(resume.Jobs.SelectMany(j => j.Skills ?? Enumerable.Empty<IResumeSkillModel>()))
+                               .Concat(resume.Projects.SelectMany(j => j.Skills ?? Enumerable.Empty<IResumeSkillModel>()))
                                .Where(s => !string.IsNullOrWhiteSpace(s?.Name))
                                .OrderBy(s => s.SkillType)
+                               .ThenBy(s => s.Name)
                                .Select(s => s!.Name)
                                .Distinct(StringComparer.InvariantCultureIgnoreCase)
                                .ToList();
@@ -53,6 +57,20 @@ namespace ResumeCV.Domain.Templates
             var otherInfos = resume.Infos?
                 .Where(i => i.InfoType != InfoTypeEnum.Links)
                 .ToList() ?? new List<IResumeInfoModel>();
+
+            // Filtra cursos superiores e comuns
+            var superiorCourses = resume.Courses?
+                .Where(c => c.CourseType == CourseTypeEnum.Superior)
+                .ToList() ?? new List<IResumeCourseModel>();
+
+            var commonCourses = resume.Courses?
+                .Where(c => c.CourseType == CourseTypeEnum.Common)
+                .ToList() ?? new List<IResumeCourseModel>();
+
+            // Divide os projetos: primeiros 3 para a esquerda, restante para a direita
+            var allProjects = resume.Projects?.ToList() ?? new List<IResumeProjectModel>();
+            var mainProjects = allProjects.Take(PROJECT_IN_MAIN).ToList();
+            var sideProjects = allProjects.Skip(PROJECT_IN_MAIN).ToList();
 
             QuestPDF.Settings.License = LicenseType.Community;
 
@@ -100,7 +118,7 @@ namespace ResumeCV.Domain.Templates
                                 if (resume.Jobs != null && resume.Jobs.Any())
                                 {
                                     main.Item().PaddingBottom(2).Text("Experiência").FontSize(14).Bold();
-                                    main.Item().PaddingBottom(20).Height(1).Background(Colors.Grey.Lighten2);
+                                    main.Item().PaddingBottom(10).Height(1).Background(Colors.Grey.Lighten2);
 
                                     foreach (var job in resume.Jobs)
                                     {
@@ -129,36 +147,100 @@ namespace ResumeCV.Domain.Templates
                                             {
                                                 var jobSkills = string.Join(", ", job.Skills.Where(s => !string.IsNullOrWhiteSpace(s?.Name)).Select(s => s!.Name));
                                                 if (!string.IsNullOrWhiteSpace(jobSkills))
-                                                    //jobCol.Item().PaddingTop(4).Text($"Competências: {jobSkills}").FontSize(8).FontColor(Colors.Grey.Medium);
                                                     jobCol.Item().Text($"Competências: {jobSkills}").FontSize(8).FontColor(Colors.Grey.Medium).Justify();
                                             }
                                         });
                                     }
                                 }
 
-                                // Infos (projetos / extras - excluindo links)
+                                // Projetos principais (primeiros 3) na coluna esquerda
+                                if (mainProjects.Any())
+                                {
+                                    main.Item().PaddingBottom(2).Text("Projetos em Destaque").FontSize(14).Bold();
+                                    main.Item().PaddingBottom(10).Height(1).Background(Colors.Grey.Lighten2);
+
+                                    foreach (var project in mainProjects)
+                                    {
+                                        main.Item().PaddingBottom(10).Column(projectCol =>
+                                        {
+                                            // Linha do título com badge de status alinhado à direita
+                                            projectCol.Item().Row(r =>
+                                            {
+                                                // Título à esquerda
+                                                r.RelativeItem().Text(project.Title).Bold();
+
+                                                // Badge de status alinhado à direita
+                                                r.AutoItem().AlignRight().Container()
+                                                    .Background(GetStatusBackgroundColor(project.Status, false))
+                                                    .CornerRadius(6)
+                                                    .PaddingVertical(3)
+                                                    .PaddingHorizontal(8)
+                                                    .Text(GetStatusText(project.Status))
+                                                    .FontSize(7)
+                                                    .FontColor(GetStatusFontColor(project.Status, false))
+                                                    .Bold();
+                                            });
+
+                                            // Ano do projeto
+                                            if (project.StartDate.HasValue)
+                                            {
+                                                var year = project.StartDate.Value.Year.ToString();
+                                                projectCol.Item().Text($"({year})").FontSize(9).FontColor(Colors.Grey.Medium);
+                                            }
+
+                                            if (!string.IsNullOrWhiteSpace(project.Resume))
+                                            {
+                                                projectCol.Item().PaddingTop(2).Element(container =>
+                                                    _markdownRenderer.Render(container, project.Resume, 9, true));
+                                            }
+
+                                            if (project.Skills != null && project.Skills.Any())
+                                            {
+                                                var projectSkills = string.Join(", ", project.Skills.Where(s => !string.IsNullOrWhiteSpace(s?.Name)).Select(s => s!.Name));
+                                                if (!string.IsNullOrWhiteSpace(projectSkills))
+                                                    projectCol.Item().Text($"Competências: {projectSkills}").FontSize(8).FontColor(Colors.Grey.Medium).Justify();
+                                            }
+
+                                            // URL no final com emoji de link
+                                            if (!string.IsNullOrWhiteSpace(project.Url))
+                                            {
+                                                projectCol.Item().PaddingTop(2).Text($"🔗 {project.Url}").FontSize(9).FontColor(Colors.Blue.Darken1);
+                                            }
+                                        });
+                                    }
+                                }
+
+                                // Infos (extras - excluindo links)
                                 if (otherInfos.Any())
                                 {
-                                    main.Item().PaddingTop(15).PaddingBottom(4).Text("Informações").FontSize(14).Bold();
+                                    main.Item().PaddingBottom(2).Text("Outras informações").FontSize(14).Bold();
+                                    main.Item().PaddingBottom(10).Height(1).Background(Colors.Grey.Lighten2);
                                     foreach (var info in otherInfos)
                                     {
                                         main.Item().PaddingBottom(10).Column(infoCol =>
                                         {
-                                            infoCol.Item().Text(info.Title).Bold();
-                                            if (!string.IsNullOrWhiteSpace(info.Url))
-                                                infoCol.Item().Text(info.Url).FontSize(9).FontColor(Colors.Blue.Darken1);
-                                            
+                                            // Título e URL na mesma linha
+                                            infoCol.Item().Row(r =>
+                                            {
+                                                r.RelativeItem().Text(info.Title).Bold();
+
+                                                if (!string.IsNullOrWhiteSpace(info.Url))
+                                                {
+                                                    r.AutoItem().AlignRight().Text($"🔗 {info.Url}").FontSize(9).FontColor(Colors.Blue.Darken1);
+                                                }
+                                            });
+
                                             if (!string.IsNullOrWhiteSpace(info.Resume))
                                             {
                                                 infoCol.Item().Element(container =>
-                                                    _markdownRenderer.Render(container, info.Resume, 9));
+                                                    _markdownRenderer.Render(container, info.Resume, 9, true));
                                             }
-                                            
+
                                             if (info.Skills != null && info.Skills.Any())
                                             {
                                                 var iskills = string.Join(", ", info.Skills.Where(s => !string.IsNullOrWhiteSpace(s?.Name)).Select(s => s!.Name));
                                                 if (!string.IsNullOrWhiteSpace(iskills))
-                                                    infoCol.Item().Text($"Skills: {iskills}").FontSize(9).FontColor(Colors.Grey.Medium);
+                                                    infoCol.Item().Text($"Skills: {iskills}").FontSize(9).FontColor(Colors.Grey.Medium).Justify();
                                             }
                                         });
                                     }
@@ -179,7 +261,7 @@ namespace ResumeCV.Domain.Templates
                                     var circularImageBytes = CreateCircularImage(imageBytes, 100);
 
                                     rightCol.Item()
-                                        .PaddingBottom(15)
+                                        .PaddingBottom(10)
                                         .AlignCenter()
                                         .Width(100)
                                         .Height(100)
@@ -208,13 +290,13 @@ namespace ResumeCV.Domain.Templates
                                     rightCol.Item().Text(skillsText).FontSize(8).FontColor(Colors.White).Justify();
                                 }
 
-                                // Cursos / Formação
-                                if (resume.Courses != null && resume.Courses.Any())
+                                // Formação (CourseType = Superior)
+                                if (superiorCourses.Any())
                                 {
-                                    rightCol.Item().PaddingTop(20).PaddingBottom(2).Text("Formação / Cursos").FontSize(14).Bold().FontColor(Colors.White);
+                                    rightCol.Item().PaddingTop(20).PaddingBottom(2).Text("Formação").FontSize(14).Bold().FontColor(Colors.White);
                                     rightCol.Item().PaddingBottom(10).Height(1).Background(Colors.White);
                                     
-                                    foreach (var course in resume.Courses)
+                                    foreach (var course in superiorCourses)
                                     {
                                         rightCol.Item().PaddingBottom(10).Column(courseCol =>
                                         {
@@ -222,17 +304,15 @@ namespace ResumeCV.Domain.Templates
                                             
                                             courseCol.Item().Text(course.Title).Bold().FontSize(10).FontColor(Colors.White);
                                             
-                                            // Institute e data na mesma linha
+                                            // Institute e data na mesma linha, separados por vírgula
                                             if (!string.IsNullOrWhiteSpace(course.Institute) || !string.IsNullOrWhiteSpace(period))
                                             {
-                                                courseCol.Item().Row(r =>
-                                                {
-                                                    if (!string.IsNullOrWhiteSpace(course.Institute))
-                                                        r.RelativeItem().Text(course.Institute).FontSize(8).FontColor(Colors.White);
-                                                    
-                                                    if (!string.IsNullOrWhiteSpace(period))
-                                                        r.AutoItem().AlignRight().Text(period).FontSize(8).FontColor(Colors.White);
-                                                });
+                                                var institutePeriod = new[] { course.Institute, period }
+                                                    .Where(x => !string.IsNullOrWhiteSpace(x));
+                                                
+                                                courseCol.Item().Text(string.Join(", ", institutePeriod))
+                                                    .FontSize(8)
+                                                    .FontColor(Colors.White);
                                             }
 
                                             if (!string.IsNullOrWhiteSpace(course.Location))
@@ -255,22 +335,23 @@ namespace ResumeCV.Domain.Templates
                                     }
                                 }
 
+
                                 // Languages
                                 if (languages.Any())
                                 {
                                     rightCol.Item().PaddingTop(20).PaddingBottom(2).Text("Idiomas").FontSize(14).Bold().FontColor(Colors.White);
                                     rightCol.Item().PaddingBottom(10).Height(1).Background(Colors.White);
-                                    
+
                                     foreach (var lang in languages)
                                     {
                                         rightCol.Item().PaddingVertical(2).Row(r =>
                                         {
                                             // Nome do idioma à esquerda
                                             r.RelativeItem().Text(lang.Language).FontSize(10).FontColor(Colors.White);
-                                            
+
                                             // Nível no centro
                                             r.AutoItem().PaddingHorizontal(5).Text(GetLevelText(lang.Level)).FontSize(9).FontColor(Colors.White);
-                                            
+
                                             // 5 círculos à direita representando o nível
                                             r.AutoItem().Row(bulletRow =>
                                             {
@@ -284,6 +365,108 @@ namespace ResumeCV.Domain.Templates
                                         });
                                     }
                                 }
+
+                                // Cursos (CourseType = Common)
+                                if (commonCourses.Any())
+                                {
+                                    rightCol.Item().PaddingTop(20).PaddingBottom(2).Text("Cursos").FontSize(14).Bold().FontColor(Colors.White);
+                                    rightCol.Item().PaddingBottom(10).Height(1).Background(Colors.White);
+                                    
+                                    foreach (var course in commonCourses)
+                                    {
+                                        rightCol.Item().PaddingBottom(4).Text(txt =>
+                                        {
+                                            // Título em negrito
+                                            txt.Span($"• {course.Title}").Bold().FontSize(8).FontColor(Colors.White);
+
+                                            // Resume após o título, separado por :
+                                            if (!string.IsNullOrWhiteSpace(course.Resume))
+                                            {
+                                                txt.Span($": {course.Resume}").FontSize(8).FontColor(Colors.White);
+                                            }
+
+                                            // Institute após o resume
+                                            if (!string.IsNullOrWhiteSpace(course.Institute))
+                                            {
+                                                var separator = !string.IsNullOrWhiteSpace(course.Resume) ? " - " : ": ";
+                                                txt.Span($"{separator}{course.Institute}").FontSize(8).FontColor(Colors.White);
+                                            }
+
+                                            // Data de término
+                                            if (course.EndDate.HasValue)
+                                            {
+                                                var endDateText = course.EndDate.Value.ToString("MMM yyyy", CultureInfo.InvariantCulture);
+                                                txt.Span($", {endDateText}").FontSize(8).FontColor(Colors.White);
+                                            }
+
+                                            // Carga horária
+                                            if (course.Workload.HasValue)
+                                            {
+                                                txt.Span($" ({course.Workload}h)").FontSize(8).FontColor(Colors.White);
+                                            }
+                                            txt.Justify();
+                                        });
+                                    }
+                                }
+
+                                // Projetos restantes (a partir do 4º) na coluna direita
+                                if (sideProjects.Any())
+                                {
+                                    rightCol.Item().PaddingTop(20).PaddingBottom(2).Text("Outros Projetos").FontSize(14).Bold().FontColor(Colors.White);
+                                    rightCol.Item().PaddingBottom(10).Height(1).Background(Colors.White);
+
+                                    foreach (var project in sideProjects)
+                                    {
+                                        rightCol.Item().PaddingBottom(10).Column(projectCol =>
+                                        {
+                                            // Linha do título com badge de status alinhado à direita
+                                            projectCol.Item().Row(r =>
+                                            {
+                                                // Título à esquerda
+                                                r.RelativeItem().Text(project.Title).Bold().FontSize(10).FontColor(Colors.White);
+
+                                                // Badge de status alinhado à direita
+                                                r.AutoItem().AlignRight().Container()
+                                                    .Background(GetStatusBackgroundColor(project.Status))
+                                                    .CornerRadius(6)
+                                                    .PaddingVertical(3)
+                                                    .PaddingHorizontal(8)
+                                                    .Text(GetStatusText(project.Status))
+                                                    .FontSize(7)
+                                                    .FontColor(GetStatusFontColor(project.Status))
+                                                    .Bold();
+                                            });
+
+                                            // Ano do projeto
+                                            if (project.StartDate.HasValue)
+                                            {
+                                                var year = project.StartDate.Value.Year.ToString();
+                                                projectCol.Item().Text($"({year})").FontSize(8).FontColor(Colors.White);
+                                            }
+
+                                            if (!string.IsNullOrWhiteSpace(project.Resume))
+                                            {
+                                                projectCol.Item().PaddingTop(2).DefaultTextStyle(x => x.FontSize(8).FontColor(Colors.White))
+                                                    .Element(container =>
+                                                        _markdownRenderer.Render(container, project.Resume, 8, true));
+                                            }
+
+                                            if (project.Skills != null && project.Skills.Any())
+                                            {
+                                                var projectSkills = string.Join(", ", project.Skills.Where(s => !string.IsNullOrWhiteSpace(s?.Name)).Select(s => s!.Name));
+                                                if (!string.IsNullOrWhiteSpace(projectSkills))
+                                                    projectCol.Item().Text($"Competências: {projectSkills}").FontSize(8).FontColor(Colors.Grey.Lighten2).Justify();
+                                            }
+
+                                            // URL no final com emoji de link
+                                            if (!string.IsNullOrWhiteSpace(project.Url))
+                                            {
+                                                projectCol.Item().PaddingTop(2).Text($"🔗 {project.Url}").FontSize(8).FontColor(Colors.White);
+                                            }
+                                        });
+                                    }
+                                }
+
                             });
                     });
 
@@ -295,7 +478,10 @@ namespace ResumeCV.Domain.Templates
                             // Coluna esquerda do footer (75%)
                             row.RelativeItem(MAIN_COLUMN_RATIO)
                                 .Background(Colors.White)
-                                .Padding(25)
+                                .PaddingTop(5)
+                                .PaddingLeft(25)
+                                .PaddingRight(25)
+                                .PaddingBottom(25)
                                 .AlignCenter()
                                 .Text(txt =>
                                 {
@@ -308,9 +494,13 @@ namespace ResumeCV.Domain.Templates
                             // Coluna direita do footer (25%) - azul
                             row.RelativeItem(RIGHT_COLUMN_RATIO)
                                 .Background(Colors.Blue.Darken2)
-                                .Padding(10)
+                                //.Padding(10)
+                                .PaddingTop(5)
+                                .PaddingLeft(10)
+                                .PaddingRight(10)
+                                .PaddingBottom(10)
                                 .AlignCenter()
-                                .Text(DateTime.Now.ToString("dd/MM/yyyy"))
+                                .Text("")
                                 .FontSize(9)
                                 .FontColor(Colors.White);
                         });
@@ -420,6 +610,42 @@ namespace ResumeCV.Domain.Templates
                 4 => "Fluente",
                 5 => "Nativo",
                 _ => "Básico"
+            };
+        }
+
+        private static string GetStatusBackgroundColor(ProjectStatusEnum status, bool isMainColumn = true)
+        {
+            return status switch
+            {
+                ProjectStatusEnum.Completed => isMainColumn ? Colors.White : Colors.Blue.Darken2,
+                ProjectStatusEnum.InDevelopment => Colors.Green.Darken1,
+                ProjectStatusEnum.InImplementation => Colors.Orange.Darken1,
+                ProjectStatusEnum.Discontinued => Colors.Red.Darken4,
+                _ => Colors.Grey.Medium
+            };
+        }
+
+        private static string GetStatusFontColor(ProjectStatusEnum status, bool isMainColumn = true)
+        {
+            return status switch
+            {
+                ProjectStatusEnum.Completed => isMainColumn ? Colors.Blue.Darken2 : Colors.White,
+                ProjectStatusEnum.InDevelopment => Colors.White,
+                ProjectStatusEnum.InImplementation => Colors.White,
+                ProjectStatusEnum.Discontinued => Colors.White,
+                _ => Colors.White
+            };
+        }
+
+        private static string GetStatusText(ProjectStatusEnum status)
+        {
+            return status switch
+            {
+                ProjectStatusEnum.Completed => "Concluído",
+                ProjectStatusEnum.InDevelopment => "Em Desenvolvimento",
+                ProjectStatusEnum.InImplementation => "Em Implementação",
+                ProjectStatusEnum.Discontinued => "Descontinuado",
+                _ => "Desconhecido"
             };
         }
     }

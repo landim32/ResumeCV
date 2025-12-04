@@ -36,9 +36,25 @@ namespace ResumeCV.Application
         public static void Configure(IServiceCollection services, string? connection, bool scoped = true)
         {
             if (scoped)
-                services.AddDbContext<ResumeCVContext>(x => x.UseLazyLoadingProxies().UseNpgsql(connection));
+            {
+                services.AddDbContext<ResumeCVContext>(x => 
+                {
+                    x.UseLazyLoadingProxies()
+                     .UseNpgsql(connection)
+                     .EnableSensitiveDataLogging() // Adicione aqui
+                     .EnableDetailedErrors();      // Opcional: mais detalhes de erros
+                });
+            }
             else
-                services.AddDbContextFactory<ResumeCVContext>(x => x.UseLazyLoadingProxies().UseNpgsql(connection));
+            {
+                services.AddDbContextFactory<ResumeCVContext>(x => 
+                {
+                    x.UseLazyLoadingProxies()
+                     .UseNpgsql(connection)
+                     .EnableSensitiveDataLogging() // Adicione aqui também
+                     .EnableDetailedErrors();      // Opcional
+                });
+            }
 
             // Registra o sistema de logging do .NET para permitir injeção de ILogger<T>
             services.AddLogging();
@@ -52,11 +68,7 @@ namespace ResumeCV.Application
             #region Repository
             // Repositórios de infraestrutura / domínio
             injectDependency(typeof(IResumeRepository<IResumeModel>), typeof(ResumeRepository), services, scoped);
-            injectDependency(typeof(IResumeCourseRepository<IResumeCourseModel>), typeof(ResumeCourseRepository), services, scoped);
-            injectDependency(typeof(IResumeInfoRepository<IResumeInfoModel>), typeof(ResumeInfoRepository), services, scoped);
-            injectDependency(typeof(IResumeJobRepository<IResumeJobModel>), typeof(ResumeJobRepository), services, scoped);
-            injectDependency(typeof(IResumeLanguageRepository<IResumeLanguageModel>), typeof(ResumeLanguageRepository), services, scoped);
-            injectDependency(typeof(IResumeSkillRepository<IResumeSkillModel>), typeof(ResumeSkillRepository), services, scoped);
+            //injectDependency(typeof(IResumeSkillRepository<IResumeSkillModel>), typeof(ResumeSkillRepository), services, scoped);
             #endregion
 
             #region AutoMapper

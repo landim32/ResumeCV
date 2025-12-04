@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Repositories\ResumeCourseRepository.cs" />
+    <Compile Remove="Repositories\ResumeInfoRepository.cs" />
+    <Compile Remove="Repositories\ResumeJobRepository.cs" />
+    <Compile Remove="Repositories\ResumeLanguageRepository.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Context\" />
   </ItemGroup>
 

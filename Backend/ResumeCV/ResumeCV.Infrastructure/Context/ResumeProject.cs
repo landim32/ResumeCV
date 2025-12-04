@@ -3,27 +3,21 @@ using System.Collections.Generic;
 
 namespace ResumeCV.Infra.Context;
 
-public partial class ResumeCourse
+public partial class ResumeProject
 {
-    public long CourseId { get; set; }
+    public long ProjectId { get; set; }
 
     public long ResumeId { get; set; }
 
-    public int CourseType { get; set; }
-
     public string Title { get; set; } = null!;
-
-    public string? Location { get; set; }
-
-    public string? Institute { get; set; }
-
-    public string? Resume { get; set; }
 
     public DateTime? StartDate { get; set; }
 
-    public DateTime? EndDate { get; set; }
+    public string? Resume { get; set; }
 
-    public int? Workload { get; set; }
+    public string? Url { get; set; }
+
+    public int Status { get; set; }
 
     public virtual Resume ResumeNavigation { get; set; } = null!;
 

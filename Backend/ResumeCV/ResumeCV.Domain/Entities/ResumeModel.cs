@@ -11,6 +11,7 @@ namespace ResumeCV.Domain.Entities
         private IList<IResumeCourseModel> _courses = new List<IResumeCourseModel>();
         private IList<IResumeInfoModel> _infos = new List<IResumeInfoModel>();
         private IList<IResumeJobModel> _jobs = new List<IResumeJobModel>();
+        private IList<IResumeProjectModel> _projects = new List<IResumeProjectModel>();
         private IList<IResumeLanguageModel> _languages = new List<IResumeLanguageModel>();
 
         // Propriedades (espelhando Resume do contexto de infraestrutura)
@@ -47,6 +48,14 @@ namespace ResumeCV.Domain.Entities
             get
             {
                 return _jobs;
+            }
+        }
+
+        public IList<IResumeProjectModel> Projects
+        {
+            get
+            {
+                return _projects;
             }
         }
 
@@ -188,14 +197,27 @@ namespace ResumeCV.Domain.Entities
         {
             _jobs.Clear();
         }
+
         public void AddJob(IResumeJobModel job)
         {
             _jobs.Add(job);
         }
+
+        public void ClearProjects()
+        {
+            _projects.Clear();
+        }
+
+        public void AddProject(IResumeProjectModel project)
+        {
+            _projects.Add(project);
+        }
+
         public void ClearLanguages()
         {
             _languages.Clear();
         }
+
         public void AddLanguage(IResumeLanguageModel language)
         {
             _languages.Add(language);

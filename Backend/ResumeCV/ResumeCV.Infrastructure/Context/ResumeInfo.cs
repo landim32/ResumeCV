@@ -17,7 +17,7 @@ public partial class ResumeInfo
 
     public int InfoType { get; set; }
 
-    public virtual ICollection<ResumeInfoSkill> ResumeInfoSkills { get; set; } = new List<ResumeInfoSkill>();
-
     public virtual Resume ResumeNavigation { get; set; } = null!;
+
+    public virtual ICollection<ResumeSkill> Skills { get; set; } = new List<ResumeSkill>();
 }

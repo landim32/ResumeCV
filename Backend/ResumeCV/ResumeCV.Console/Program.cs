@@ -5,6 +5,8 @@ using ResumeCV.Domain.Services;
 using ResumeCV.Domain.Services.Interfaces;
 using System.Diagnostics;
 
+const long RESUME_ID = 10;
+
 // Carrega configuração do appsettings.json
 var configuration = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -32,7 +34,7 @@ var resumeService = (ResumeService)resumeServiceInterface;
 Console.WriteLine($"Instância criada: {resumeService.GetType().FullName}");
 Console.WriteLine($"Conectado ao banco: {connectionString.Split(';')[0]}");
 
-var streamPdf = resumeService.GeneratePdf(2);
+var streamPdf = resumeService.GeneratePdf(RESUME_ID);
 
 // Salva o PDF em um arquivo
 var fileName = $"Resume_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
