@@ -620,7 +620,7 @@ namespace ResumeCV.Domain.Templates
                 ProjectStatusEnum.Completed => isMainColumn ? Colors.White : Colors.Blue.Darken2,
                 ProjectStatusEnum.InDevelopment => Colors.Green.Darken1,
                 ProjectStatusEnum.InImplementation => Colors.Orange.Darken1,
-                ProjectStatusEnum.Discontinued => Colors.Red.Darken4,
+                ProjectStatusEnum.Discontinued => Colors.Yellow.Darken2,
                 _ => Colors.Grey.Medium
             };
         }
@@ -632,7 +632,7 @@ namespace ResumeCV.Domain.Templates
                 ProjectStatusEnum.Completed => isMainColumn ? Colors.Blue.Darken2 : Colors.White,
                 ProjectStatusEnum.InDevelopment => Colors.White,
                 ProjectStatusEnum.InImplementation => Colors.White,
-                ProjectStatusEnum.Discontinued => Colors.White,
+                ProjectStatusEnum.Discontinued => Colors.Black,
                 _ => Colors.White
             };
         }
