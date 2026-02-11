@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Markdig" Version="0.44.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ResumeCV.Application\ResumeCV.Application.csproj" />
+    <ProjectReference Include="..\ResumeCV.Domain\ResumeCV.Domain.csproj" />
+    <ProjectReference Include="..\ResumeCV.DTOs\ResumeCV.DTOs.csproj" />
+    <ProjectReference Include="..\ResumeCV.Infra\ResumeCV.Infra.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NTools.ACL" Version="0.2.3" />
+    <PackageReference Include="NTools.DTO" Version="0.2.3" />
+  </ItemGroup>
+
+</Project>
